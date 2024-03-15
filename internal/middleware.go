@@ -2,6 +2,9 @@ package internal
 
 import (
 	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
+	"github.com/FACorreiaa/ink-app-backend-protos/container"
+	"github.com/FACorreiaa/ink-app-backend-protos/modules/customer"
+	"github.com/FACorreiaa/ink-app-backend-protos/utils"
 	"go.uber.org/zap"
 )
 

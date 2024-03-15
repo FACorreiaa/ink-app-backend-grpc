@@ -2,6 +2,7 @@ package grpclog
 
 import (
 	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware"
+	grpcZap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc/codes"

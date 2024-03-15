@@ -5,7 +5,7 @@ import (
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal"
 	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
-	"github.com/FACorreiaa/ink-app-backend-grpc/utils"
+	"github.com/FACorreiaa/ink-app-backend-protos/utils"
 	"go.uber.org/zap"
 )
 

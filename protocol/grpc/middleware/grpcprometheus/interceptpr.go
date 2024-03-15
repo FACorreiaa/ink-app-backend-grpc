@@ -16,7 +16,7 @@ func Interceptors(collectors *Collectors) (*middleware.BootstrapClient, *middlew
 	}
 
 	var (
-		clientInterceptor *middleware.ClientInterceptor
+		clientInterceptor *middleware.BootstrapClient
 		serverInterceptor *middleware.ServerInterceptor
 	)
 

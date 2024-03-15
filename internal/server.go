@@ -11,6 +11,7 @@ import (
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
 	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc"
+	"github.com/FACorreiaa/ink-app-backend-protos/container"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
@@ -71,7 +72,7 @@ func ServeHTTP(HTTPPort string) error {
 	// Add your healthchecks here too
 
 	listener := &http.Server{
-		Addr:              fmt.Sprintf(":%s", .HTTPPort),
+		Addr:              fmt.Sprintf(":%s", HTTPPort),
 		ReadHeaderTimeout: cfg.HTTPTimeout,
 		Handler:           server,
 	}
