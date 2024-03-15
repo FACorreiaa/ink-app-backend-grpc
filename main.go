@@ -56,7 +56,7 @@ func main() {
 		}
 	}()
 
-	if err := internal.ServeHTTP(httpPort, log); err != nil {
+	if err := internal.ServeHTTP(httpPort); err != nil {
 		logger.Log.Error("failed to serve http", zap.Error(err))
 		return
 	}

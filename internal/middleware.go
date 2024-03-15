@@ -10,7 +10,7 @@ import (
 
 // ConfigureUpstreamClients maintains the broker container so we have a struct that we can pass
 // down to the service, with connections to all other services that we need
-func ConfigureUpstreamClients(transport *utils.TransportUtils) *container.Brokers {
+func ConfigureUpstreamClients(log *zap.Logger, transport *utils.TransportUtils) *container.Brokers {
 	brokers := container.NewBrokers(transport)
 	if brokers == nil {
 		logger.Log.Error("failed to setup container - did you configure transport utils?")

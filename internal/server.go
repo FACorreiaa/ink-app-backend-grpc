@@ -1,14 +1,14 @@
 package internal
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"sync/atomic"
 
-	"context"
-
+	"github.com/FACorreiaa/ink-app-backend-grpc/configs"
 	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
 	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc"
 	"github.com/FACorreiaa/ink-app-backend-protos/container"
@@ -67,13 +67,17 @@ func ServeGRPC(ctx context.Context, port string, brokers *container.Brokers) err
 func ServeHTTP(HTTPPort string) error {
 	logger.Log.Info("running http server", zap.String("port", HTTPPort))
 
+	cfg, err := configs.InitConfig()
+	if err != nil {
+		zap.Error(err)
+	}
 	server := http.NewServeMux()
 	server.HandleFunc("/metrics", promhttp.Handler().ServeHTTP)
 	// Add your healthchecks here too
 
 	listener := &http.Server{
-		Addr:              fmt.Sprintf(":%s", HTTPPort),
-		ReadHeaderTimeout: cfg.HTTPTimeout,
+		Addr:              fmt.Sprintf(":%s", cfg.Server.Port),
+		ReadHeaderTimeout: cfg.Server.Timeout,
 		Handler:           server,
 	}
 
