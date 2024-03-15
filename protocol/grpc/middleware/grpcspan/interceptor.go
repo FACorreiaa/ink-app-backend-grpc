@@ -2,7 +2,6 @@ package grpcspan
 
 import (
 	"github.com/FACorreiaa/ink-me-backend-grpc/protocol/grpc/middleware"
-
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 )
 
@@ -12,13 +11,13 @@ import (
 // rather than having to update the servers and clients individually.
 func Interceptors() (middleware.ClientInterceptor, middleware.ServerInterceptor) {
 	clientInterceptor := middleware.ClientInterceptor{
-		Unary:  otelgrpc.UnaryClientInterceptor(),
-		Stream: otelgrpc.StreamClientInterceptor(),
+		Unary:  otelgrpc.NewClientHandler(),
+		Stream: otelgrpc.NewClientHandler(),
 	}
 
 	serverInterceptor := middleware.ServerInterceptor{
-		Unary:  otelgrpc.UnaryServerInterceptor(),
-		Stream: otelgrpc.StreamServerInterceptor(),
+		Unary:  otelgrpc.NewServerHandler(),
+		Stream: otelgrpc.NewServerHandler(),
 	}
 
 	return clientInterceptor, serverInterceptor

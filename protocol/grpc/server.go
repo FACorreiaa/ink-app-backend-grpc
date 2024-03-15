@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/FACorreiaa/ink-me-backend-grpc/protocol/grpc/middleware"
 	"github.com/FACorreiaa/ink-me-backend-grpc/protocol/grpc/middleware/grpclog"
 	"github.com/FACorreiaa/ink-me-backend-grpc/protocol/grpc/middleware/grpcprometheus"
 	"github.com/FACorreiaa/ink-me-backend-grpc/protocol/grpc/middleware/grpcrecovery"

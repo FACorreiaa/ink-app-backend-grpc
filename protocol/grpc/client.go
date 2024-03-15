@@ -1,8 +1,8 @@
 package grpc
 
 import (
-	"github.com/FACorreiaa/ink-me-backend-grpc/grpc/grpc/middleware/grpcspan"
-	"github.com/highly-regarded/grpc/protocol/grpc/middleware/grpclog"
+	"github.com/FACorreiaa/ink-me-backend-grpc/protocol/grpc/middleware/grpclog"
+	"github.com/FACorreiaa/ink-me-backend-grpc/protocol/grpc/middleware/grpcspan"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
@@ -34,14 +34,14 @@ func BootstrapClient(
 
 		// Add the unary interceptors
 		grpc.WithChainUnaryInterceptor(
-			spanInterceptor.Unary,
-			logInterceptor.Unary,
+			spanInterceptor,
+			logInterceptor,
 		),
 
 		// Add the stream interceptors
 		grpc.WithChainStreamInterceptor(
-			spanInterceptor.Stream,
-			logInterceptor.Stream,
+			spanInterceptor,
+			logInterceptor,
 		),
 	}
 
