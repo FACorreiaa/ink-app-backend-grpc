@@ -3,6 +3,7 @@ package grpc
 import (
 	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware/grpclog"
 	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware/grpcspan"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
@@ -15,6 +16,7 @@ func BootstrapClient(
 	address string,
 	log *zap.Logger,
 	traceProvider trace.TracerProvider,
+	prometheus *prometheus.Registry,
 	opts ...grpc.DialOption,
 ) (*grpc.ClientConn, error) {
 	// -- OpenTelemetry interceptor setup
@@ -34,14 +36,14 @@ func BootstrapClient(
 
 		// Add the unary interceptors
 		grpc.WithChainUnaryInterceptor(
-			spanInterceptor,
-			logInterceptor,
+			spanInterceptor.Unary,
+			logInterceptor.Unary,
 		),
 
 		// Add the stream interceptors
 		grpc.WithChainStreamInterceptor(
-			spanInterceptor,
-			logInterceptor,
+			spanInterceptor.Stream,
+			logInterceptor.Stream,
 		),
 	}
 
