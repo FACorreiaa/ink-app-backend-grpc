@@ -7,13 +7,14 @@ import (
 	"os/signal"
 	"sync/atomic"
 
+	"context"
+
 	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
 	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/reflection"
-	"context"
 )
 
 // -- Server components

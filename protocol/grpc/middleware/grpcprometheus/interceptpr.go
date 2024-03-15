@@ -3,12 +3,14 @@ package grpcprometheus
 import (
 	"context"
 
+	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware"
+	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
 )
 
-func Interceptors(collectors *Collectors) (*middleware.ClientInterceptor, *middleware.ServerInterceptor, error) {
+func Interceptors(collectors *Collectors) (*middleware.BootstrapClient, *middleware.ServerInterceptor, error) {
 	if collectors == nil {
 		return nil, nil, errors.New("must provide Prometheus collectors")
 	}
