@@ -11,13 +11,13 @@ import (
 // rather than having to update the servers and clients individually.
 func Interceptors() (middleware.ClientInterceptor, middleware.ServerInterceptor) {
 	clientInterceptor := middleware.ClientInterceptor{
-		Unary:  otelgrpc.NewClientHandler(),
-		Stream: otelgrpc.NewClientHandler(),
+		Unary:  otelgrpc.UnaryClientInterceptor(),
+		Stream: otelgrpc.StreamClientInterceptor(),
 	}
 
 	serverInterceptor := middleware.ServerInterceptor{
-		Unary:  otelgrpc.NewServerHandler(),
-		Stream: otelgrpc.NewServerHandler(),
+		Unary:  otelgrpc.UnaryServerInterceptor(),
+		Stream: otelgrpc.StreamServerInterceptor(),
 	}
 
 	return clientInterceptor, serverInterceptor

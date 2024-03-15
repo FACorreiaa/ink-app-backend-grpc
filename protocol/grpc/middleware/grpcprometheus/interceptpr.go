@@ -10,13 +10,13 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func Interceptors(collectors *Collectors) (*middleware.BootstrapClient, *middleware.ServerInterceptor, error) {
+func Interceptors(collectors *Collectors) (*middleware.ClientInterceptor, *middleware.ServerInterceptor, error) {
 	if collectors == nil {
 		return nil, nil, errors.New("must provide Prometheus collectors")
 	}
 
 	var (
-		clientInterceptor *middleware.BootstrapClient
+		clientInterceptor *middleware.ClientInterceptor
 		serverInterceptor *middleware.ServerInterceptor
 	)
 

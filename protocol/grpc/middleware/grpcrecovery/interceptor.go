@@ -1,6 +1,8 @@
 package grpcrecovery
 
 import (
+	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"google.golang.org/grpc/codes"

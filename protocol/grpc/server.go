@@ -59,7 +59,7 @@ func BootstrapServer(
 
 	// Configure server options from our base configuration
 	serverOptions := []grpc.ServerOption{
-		grpc.KeepaliveEnforcementPolicy(middleware.KeepAlivePolicy()),
+		grpc.KeepaliveEnforcementPolicy(middleware.KeepaliveEnforcementPolicy()),
 		grpc.KeepaliveParams(middleware.KeepAliveServerParams()),
 
 		// Note: Order of interceptors for the connection matters.
