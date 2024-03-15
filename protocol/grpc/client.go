@@ -1,0 +1,52 @@
+package grpc
+
+import (
+	"github.com/FACorreiaa/ink-me-backend-grpc/grpc/grpc/middleware/grpcspan"
+	"github.com/highly-regarded/grpc/protocol/grpc/middleware/grpclog"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+)
+
+func BootstrapClient(
+	address string,
+	log *zap.Logger,
+	traceProvider trace.TracerProvider,
+	opts ...grpc.DialOption,
+) (*grpc.ClientConn, error) {
+	// -- OpenTelemetry interceptor setup
+	otel.SetTracerProvider(traceProvider)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{},
+		propagation.Baggage{},
+	))
+	spanInterceptor, _ := grpcspan.Interceptors()
+
+	// -- Zap logging interceptor setup
+	logInterceptor, _ := grpclog.Interceptors(log)
+
+	connOptions := []grpc.DialOption{
+		// We terminate TLS in the linkerd sidecar, so no need for TLS on the listen server
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+
+		// Add the unary interceptors
+		grpc.WithChainUnaryInterceptor(
+			spanInterceptor.Unary,
+			logInterceptor.Unary,
+		),
+
+		// Add the stream interceptors
+		grpc.WithChainStreamInterceptor(
+			spanInterceptor.Stream,
+			logInterceptor.Stream,
+		),
+	}
+
+	// Add any additional options
+	connOptions = append(connOptions, opts...)
+
+	return grpc.Dial(address, connOptions...)
+}

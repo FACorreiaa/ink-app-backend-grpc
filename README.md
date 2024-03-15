@@ -1,1 +1,1 @@
-# ink-app-backend-grpc
+# Ink app backend gRPC
