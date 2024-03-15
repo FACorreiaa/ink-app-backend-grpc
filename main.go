@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 
-	"github.com/FACorreiaa/ink-me-backend-grpc/internal"
-	"github.com/FACorreiaa/ink-me-backend-grpc/logger"
-	"github.com/FACorreiaa/ink-me-backend-grpc/utils"
+	"github.com/FACorreiaa/ink-app-backend-grpc/internal"
+	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
+	"github.com/FACorreiaa/ink-app-backend-grpc/utils"
 	"go.uber.org/zap"
 )
 

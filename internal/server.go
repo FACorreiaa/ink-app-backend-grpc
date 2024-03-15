@@ -7,8 +7,8 @@ import (
 	"os/signal"
 	"sync/atomic"
 
-	"github.com/FACorreiaa/ink-me-backend-grpc/logger"
-	"github.com/FACorreiaa/ink-me-backend-grpc/protocol/grpc"
+	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
+	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"

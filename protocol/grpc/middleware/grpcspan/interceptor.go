@@ -1,7 +1,7 @@
 package grpcspan
 
 import (
-	"github.com/FACorreiaa/ink-me-backend-grpc/protocol/grpc/middleware"
+	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 )
 

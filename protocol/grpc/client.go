@@ -1,8 +1,8 @@
 package grpc
 
 import (
-	"github.com/FACorreiaa/ink-me-backend-grpc/protocol/grpc/middleware/grpclog"
-	"github.com/FACorreiaa/ink-me-backend-grpc/protocol/grpc/middleware/grpcspan"
+	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware/grpclog"
+	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware/grpcspan"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
