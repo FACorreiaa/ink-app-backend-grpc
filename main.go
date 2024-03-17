@@ -14,6 +14,16 @@ import (
 // In practice, everything other than main lives in various
 // locations in the service's './internal' directory
 
+func run() {
+	log := logger.Log
+	redisConfig, err := internal.NewRedisConfig()
+	if err != nil {
+		log.Error("failed to initialize Redis configuration", zap.Error(err))
+		return
+	}
+	log.Info("Connected to Redis", zap.String("host", redisConfig.Host))
+}
+
 func main() {
 	ctx := context.Background()
 
@@ -26,12 +36,14 @@ func main() {
 		zap.DebugLevel,
 		zap.String("service", "example"),
 		zap.String("version", "v42.0.69"),
-		zap.Strings("maintainers", []string{"@highly-regarded"}),
+		zap.Strings("maintainers", []string{"@fc", "@FACorreiaa"}),
 	); err != nil || logger.Log == nil {
 		panic("failed to initialize logging")
 	}
 
 	log := logger.Log
+
+	run()
 
 	// Configure tracing & Prometheus first...
 	tu := new(utils.TransportUtils)

@@ -3,6 +3,7 @@ package configs
 import (
 	"time"
 
+	"github.com/FACorreiaa/ink-app-backend-protos/modules/customer"
 	"github.com/spf13/viper"
 )
 
@@ -38,11 +39,20 @@ type Config struct {
 			SSLMODE           string `mapstructure:"SSLMODE"`
 			MAXCONWAITINGTIME int    `mapstructure:"MAXCONWAITINGTIME"`
 		}
+		Redis struct {
+			Host string `mapstructure:"host"`
+			Pass string `mapstructure:"pass"`
+			DB   int    `mapstructure:"db"`
+		}
 	}
 	Server struct {
-		Port    string        `mapstructure:"HTTPPort"`
-		Timeout time.Duration `mapstructure:"HTTPTimeout"`
+		Port           string        `mapstructure:"HTTPPort"`
+		Timeout        time.Duration `mapstructure:"HTTPTimeout"`
+		CustomerBroker *customer.Broker
 	} `mapstructure:"server"`
+	UpstreamServices struct {
+		Customer string `mapstructure:"customer"`
+	} `mapstructure:"upstreamServices"`
 }
 
 func InitConfig() (Config, error) {

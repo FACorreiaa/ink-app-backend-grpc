@@ -38,9 +38,17 @@ repositories:
     db: "aviationdb"
     SSLMODE: "verify-full"
     MAXCONWAITINGTIME: 10
+  redis:
+    host: "redis:6380"
+    pass: "qwerty"
+    db: 0
+
 
 #change later
 server:
   HTTPPort: "6969"
   HTTPTimeout: 5
+
+upstreamServices:
+  customer: "example.com:1234"
 

@@ -33,13 +33,13 @@ func ServeGRPC(ctx context.Context, port string, brokers *container.Brokers) err
 	}
 
 	// Replace with your actual handler service
-	implementation, err := service.NewDummyService(brokers)
+	//implementation, err := service.NewDummyService(brokers)
 	if err != nil {
 		return errors.Wrap(err, "failed to initialize grpc handler service")
 	}
 
 	// Replace with your actual generated registration method
-	generated.RegisterDummyServer(server, implementation)
+	//generated.RegisterDummyServer(server, implementation)
 
 	// Enable reflection to be able to use grpcui or insomnia without
 	// having to manually maintain .proto files
