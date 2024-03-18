@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"os"
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/configs"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal"
@@ -17,7 +18,27 @@ import (
 
 func run() {
 	log := logger.Log
+	dbConfig, err := internal.NewDatabaseConfig()
+	if err != nil {
+		log.Error("failed to initialize database configuration", zap.Error(err))
+		os.Exit(1)
+	}
+
+	pool, err := internal.Init(dbConfig.ConnectionURL)
+	if err != nil {
+		log.Error("failed to initialize database pool", zap.Error(err))
+		os.Exit(1)
+	}
+	defer pool.Close()
+
+	internal.WaitForDB(pool)
+
 	redisConfig, err := internal.NewRedisConfig()
+
+	if err = internal.Migrate(pool); err != nil {
+		zap.Error(err)
+		os.Exit(1)
+	}
 	if err != nil {
 		log.Error("failed to initialize Redis configuration", zap.Error(err))
 		return

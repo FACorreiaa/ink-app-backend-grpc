@@ -32,15 +32,14 @@ services:
 
 repositories:
   postgres:
-    host: "scarce-serval-7031.7tc.cockroachlabs.cloud"
-    port: "26257"
-    username: "knox"
-    db: "aviationdb"
+    host: "postgres"
+    port: "5435"
+    username: "postgres"
+    db: "ink-me-dev"
     SSLMODE: "verify-full"
     MAXCONWAITINGTIME: 10
   redis:
-    host: "redis:6380"
-    pass: "qwerty"
+    host: "redis:8379"
     db: 0
 
 
