@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/configs"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal"
 	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
 	"github.com/FACorreiaa/ink-app-backend-protos/utils"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
@@ -18,32 +20,48 @@ import (
 
 func run() {
 	log := logger.Log
-	dbConfig, err := internal.NewDatabaseConfig()
-	if err != nil {
-		log.Error("failed to initialize database configuration", zap.Error(err))
-		os.Exit(1)
-	}
-
-	pool, err := internal.Init(dbConfig.ConnectionURL)
-	if err != nil {
-		log.Error("failed to initialize database pool", zap.Error(err))
-		os.Exit(1)
-	}
-	defer pool.Close()
-
-	internal.WaitForDB(pool)
+	//dbConfig, err := internal.NewDatabaseConfig()
+	//if err != nil {
+	//	log.Error("failed to initialize database configuration", zap.Error(err))
+	//	os.Exit(1)
+	//}
+	//
+	//pool, err := internal.Init(dbConfig.ConnectionURL)
+	//if err != nil {
+	//	log.Error("failed to initialize database pool", zap.Error(err))
+	//	os.Exit(1)
+	//}
+	//defer pool.Close()
+	//
+	//internal.WaitForDB(pool)
 
 	redisConfig, err := internal.NewRedisConfig()
 
-	if err = internal.Migrate(pool); err != nil {
-		zap.Error(err)
-		os.Exit(1)
-	}
+	defer func(redisConfig *redis.Client) {
+		err = redisConfig.Close()
+		if err != nil {
+			fmt.Print(err)
+			os.Exit(1)
+		}
+	}(redisConfig)
+
+	cfg, _ := configs.InitConfig()
+	// db.WaitForRedis(redisClient)
+
+	//if err = db.Migrate(pool); err != nil {
+	//	log.Println(err)
+	//	os.Exit(1)
+	//}
+
+	//if err = internal.Migrate(pool); err != nil {
+	//	zap.Error(err)
+	//	os.Exit(1)
+	//}
 	if err != nil {
 		log.Error("failed to initialize Redis configuration", zap.Error(err))
 		return
 	}
-	log.Info("Connected to Redis", zap.String("host", redisConfig.Host))
+	log.Info("Connected to Redis", zap.String("host", cfg.Repositories.Redis.Host))
 }
 
 func main() {

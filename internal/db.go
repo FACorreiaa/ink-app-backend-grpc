@@ -17,6 +17,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
+	"github.com/redis/go-redis/v9"
 	uuid "github.com/vgarvardt/pgx-google-uuid/v5"
 
 	"github.com/pkg/errors"
@@ -46,19 +47,18 @@ type DatabaseConfig struct {
 	ConnectionURL string
 }
 
-func NewRedisConfig() (*RedisConfig, error) {
+func NewRedisConfig() (*redis.Client, error) {
 	cfg, err := configs.InitConfig()
 	pass := GetEnv("REDIS_PASSWORD", "")
 
 	if err != nil {
 		zap.Error(err)
 	}
-
-	return &RedisConfig{
-		Host:     cfg.Repositories.Redis.Host,
+	return redis.NewClient(&redis.Options{
+		Addr:     cfg.Repositories.Redis.Host,
 		Password: pass,
 		DB:       cfg.Repositories.Redis.DB,
-	}, nil
+	}), nil
 }
 
 func NewDatabaseConfig() (*DatabaseConfig, error) {
@@ -83,9 +83,6 @@ func NewDatabaseConfig() (*DatabaseConfig, error) {
 	pass := GetEnv("DB_PASS", "")
 	schema := GetEnv("DB_SCHEMA", "")
 
-	println(pass)
-	println(schema)
-
 	query := url.Values{
 		"sslmode":  []string{"disable"},
 		"timezone": []string{"utc"},
@@ -100,6 +97,7 @@ func NewDatabaseConfig() (*DatabaseConfig, error) {
 		Path:     cfg.Repositories.Postgres.DB,
 		RawQuery: query.Encode(),
 	}
+	fmt.Printf("#%v", connURL)
 	return &DatabaseConfig{
 		ConnectionURL: connURL.String(),
 	}, nil

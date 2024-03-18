@@ -32,7 +32,7 @@ services:
 
 repositories:
   postgres:
-    host: "postgres"
+    host: "host.docker.internal"
     port: "5435"
     username: "postgres"
     db: "ink-me-dev"
