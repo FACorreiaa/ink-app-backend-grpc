@@ -47,6 +47,7 @@ repositories:
 #change later
 server:
   HTTPPort: "6969"
+  GRPCPort: "8080"
   HTTPTimeout: 5
 
 upstreamServices:

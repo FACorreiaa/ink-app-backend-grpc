@@ -46,7 +46,8 @@ type Config struct {
 		}
 	}
 	Server struct {
-		Port           string        `mapstructure:"HTTPPort"`
+		HttpPort       string        `mapstructure:"HTTPPort"`
+		GrpcPort       string        `mapstructure:"GRPCPort"`
 		Timeout        time.Duration `mapstructure:"HTTPTimeout"`
 		CustomerBroker *customer.Broker
 	} `mapstructure:"server"`

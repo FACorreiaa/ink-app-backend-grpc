@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 
+	"github.com/FACorreiaa/ink-app-backend-grpc/configs"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal"
 	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
 	"github.com/FACorreiaa/ink-app-backend-protos/utils"
@@ -28,9 +29,11 @@ func main() {
 	ctx := context.Background()
 
 	// You should get these from your config object instead
-	grpcPort := "9000"
-	httpPort := "8085"
-
+	// yml config
+	cfg, err := configs.InitConfig()
+	if err != nil {
+		zap.Error(err)
+	}
 	// Setup logging (found in ./logger)
 	if err := logger.Init(
 		zap.DebugLevel,
@@ -62,13 +65,13 @@ func main() {
 	// and any background workers in goroutines, and leave the HTTP
 	// metrics server as the final keepalive for the process
 	go func() {
-		if err := internal.ServeGRPC(ctx, grpcPort, brokers); err != nil {
+		if err := internal.ServeGRPC(ctx, cfg.Server.GrpcPort, brokers); err != nil {
 			logger.Log.Error("failed to serve grpc", zap.Error(err))
 			return
 		}
 	}()
 
-	if err := internal.ServeHTTP(httpPort); err != nil {
+	if err := internal.ServeHTTP(cfg.Server.HttpPort); err != nil {
 		logger.Log.Error("failed to serve http", zap.Error(err))
 		return
 	}
