@@ -2,58 +2,69 @@ name: golangci-lint
 on:
   push:
     branches:
-      - master
       - main
   pull_request:
 
 permissions:
   contents: read
-  # Optional: allow read access to pull request. Use with `only-new-issues` option.
-  # pull-requests: read
 
 jobs:
-  golangci:
-    name: lint
-    runs-on: ubuntu-latest
+  linter:
+    name: golangci-lint
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        go-version: ['1.20', 1.x ]
+        os: [ubuntu-latest, macos-latest] # Go plugins are only supported on linux, freebsd, and darwin.
+    env:
+      CGO_ENABLED: 0
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
         with:
-          go-version: '1.22'
+          go-version: '1.20'
           cache: false
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          # In order:
+          # * Module download cache
+          # * Build cache (Linux)
+          # * Build cache (Mac)
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ~/Library/Caches/go-build
+          key: ${{ runner.os }}-${{ matrix.go-version }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.go-version }}-go-
+
+      - name: Check and get dependencies
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod
+          # git diff --exit-code go.sum
+
+      - name: Install plugins
+        run: |
+          git clone https://github.com/golangci/example-plugin-linter.git
+          cd example-plugin-linter
+          go build -o '${{ github.workspace }}/.plugins/example.so' -buildmode=plugin plugin/example.go
+        working-directory: ${{ runner.temp }}
+        env:
+          CGO_ENABLED: 1
+
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.54
-      - name: run go lint
-        run: golangci-lint run --config ./config/go.yml
-        with:
-          # Require: The version of golangci-lint to use.
-          # When `install-mode` is `binary` (default) the value can be v1.2 or v1.2.3 or `latest` to use the latest version.
-          # When `install-mode` is `goinstall` the value can be v1.2.3, `latest`, or the hash of a commit.
-          version: v1.54
+          version: v1.53.2
+          # The installation mode `goinstall` always uses `CGO_ENABLED=1`.
+          install-mode: goinstall
+          args: --timeout=10m
 
-          # Optional: working directory, useful for monorepos
-          # working-directory: somedir
+      - name: Test
+        run: go test -v -cover ./...
 
-          # Optional: golangci-lint command line arguments.
-          #
-          # Note: By default, the `.golangci.yml` file should be at the root of the repository.
-          # The location of the configuration file can be changed by using `--config=`
-          # args: --timeout=30m --config=/my/path/.golangci.yml --issues-exit-code=0
-
-          # Optional: show only new issues if it's a pull request. The default value is `false`.
-          # only-new-issues: true
-
-          # Optional: if set to true, then all caching functionality will be completely disabled,
-          #           takes precedence over all other caching options.
-          # skip-cache: true
-
-          # Optional: if set to true, then the action won't cache or restore ~/go/pkg.
-          # skip-pkg-cache: true
-
-          # Optional: if set to true, then the action won't cache or restore ~/.cache/go-build.
-          # skip-build-cache: true
-
-          # Optional: The mode to install golangci-lint. It can be 'binary' or 'goinstall'.
-          # install-mode: "goinstall"
+      - name: Build
+        run: go build -v -ldflags "-s -w" -trimpath
