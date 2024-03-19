@@ -81,7 +81,7 @@ func NewDatabaseConfig() (*DatabaseConfig, error) {
 	}
 
 	pass := GetEnv("DB_PASS", "")
-	schema := GetEnv("DB_SCHEMA", "")
+	schema := GetEnv("", "")
 
 	query := url.Values{
 		"sslmode":  []string{"disable"},
