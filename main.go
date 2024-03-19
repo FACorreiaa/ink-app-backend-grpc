@@ -20,20 +20,20 @@ import (
 
 func run() {
 	log := logger.Log
-	//dbConfig, err := internal.NewDatabaseConfig()
-	//if err != nil {
-	//	log.Error("failed to initialize database configuration", zap.Error(err))
-	//	os.Exit(1)
-	//}
+	dbConfig, err := internal.NewDatabaseConfig()
+	if err != nil {
+		log.Error("failed to initialize database configuration", zap.Error(err))
+		os.Exit(1)
+	}
 	//
-	//pool, err := internal.Init(dbConfig.ConnectionURL)
-	//if err != nil {
-	//	log.Error("failed to initialize database pool", zap.Error(err))
-	//	os.Exit(1)
-	//}
-	//defer pool.Close()
-	//
-	//internal.WaitForDB(pool)
+	pool, err := internal.Init(dbConfig)
+	if err != nil {
+		log.Error("failed to initialize database pool", zap.Error(err))
+		os.Exit(1)
+	}
+	defer pool.Close()
+
+	internal.WaitForDB(pool)
 
 	redisConfig, err := internal.NewRedisConfig()
 
@@ -46,17 +46,11 @@ func run() {
 	}(redisConfig)
 
 	cfg, _ := configs.InitConfig()
-	// db.WaitForRedis(redisClient)
 
-	//if err = db.Migrate(pool); err != nil {
-	//	log.Println(err)
-	//	os.Exit(1)
-	//}
-
-	//if err = internal.Migrate(pool); err != nil {
-	//	zap.Error(err)
-	//	os.Exit(1)
-	//}
+	if err = internal.Migrate(pool); err != nil {
+		zap.Error(err)
+		os.Exit(1)
+	}
 	if err != nil {
 		log.Error("failed to initialize Redis configuration", zap.Error(err))
 		return
@@ -110,7 +104,7 @@ func main() {
 		}
 	}()
 
-	if err := internal.ServeHTTP(cfg.Server.HttpPort); err != nil {
+	if err := internal.ServeHTTP(cfg.Server.HTTPPort); err != nil {
 		logger.Log.Error("failed to serve http", zap.Error(err))
 		return
 	}

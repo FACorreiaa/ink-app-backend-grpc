@@ -32,7 +32,7 @@ services:
 
 repositories:
   postgres:
-    host: "host.docker.internal"
+    host: "localhost"
     port: "5435"
     username: "postgres"
     db: "ink-me-dev"
@@ -45,8 +45,8 @@ repositories:
 
 #change later
 server:
-  HTTPPort: "6969"
-  GRPCPort: "8080"
+  HTTPPort: "8095"
+  GRPCPort: "9000"
   HTTPTimeout: 5
 
 upstreamServices:

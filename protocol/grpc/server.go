@@ -29,6 +29,7 @@ func BootstrapServer(
 	opts ...grpc.ServerOption,
 ) (*grpc.Server, net.Listener, error) {
 	// initiate the listener
+	// testing purposes
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to create listener")

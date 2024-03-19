@@ -61,7 +61,7 @@ func NewRedisConfig() (*redis.Client, error) {
 	}), nil
 }
 
-func NewDatabaseConfig() (*DatabaseConfig, error) {
+func NewDatabaseConfig() (*pgxpool.Config, error) {
 	cfg, err := configs.InitConfig()
 	if err != nil {
 		log.Println(err)
@@ -97,17 +97,15 @@ func NewDatabaseConfig() (*DatabaseConfig, error) {
 		Path:     cfg.Repositories.Postgres.DB,
 		RawQuery: query.Encode(),
 	}
-	fmt.Printf("#%v", connURL)
-	return &DatabaseConfig{
-		ConnectionURL: connURL.String(),
-	}, nil
+	pgCfg, err := pgxpool.ParseConfig(connURL.String())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse connection URL")
+	}
+
+	return pgCfg, nil
 }
 
-func Init(connectionURL string) (*pgxpool.Pool, error) {
-	cfg, err := pgxpool.ParseConfig(connectionURL)
-	if err != nil {
-		return nil, err
-	}
+func Init(cfg *pgxpool.Config) (*pgxpool.Pool, error) {
 	cfg.AfterConnect = func(_ context.Context, conn *pgx.Conn) error {
 		uuid.Register(conn.TypeMap())
 		return nil
@@ -133,7 +131,6 @@ func WaitForDB(pgpool *pgxpool.Pool) {
 }
 
 func Migrate(conn *pgxpool.Pool) error {
-	// migrate db
 	l := logger.Log
 	l.Info("Running migrations")
 	ctx := context.Background()

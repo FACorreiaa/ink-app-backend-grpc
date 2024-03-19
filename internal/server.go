@@ -33,6 +33,7 @@ func ServeGRPC(ctx context.Context, port string, brokers *container.Brokers) err
 	if err != nil {
 		return errors.Wrap(err, "failed to configure prometheus registry")
 	}
+	// configure OTEL trace provider
 	tp, err := otelTraceProvider(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to configure jaeger trace provider")
@@ -82,7 +83,10 @@ func ServeHTTP(HTTPPort string) error {
 		zap.Error(err)
 	}
 	server := http.NewServeMux()
-	// Add healthcheck endpoints
+
+	server.HandleFunc("/metrics", promhttp.Handler().ServeHTTP)
+	// Add your healthchecks here too
+
 	server.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		// Perform health check logic here
 		// For example, check if the server is healthy
@@ -96,11 +100,9 @@ func ServeHTTP(HTTPPort string) error {
 		// Respond with appropriate status code
 		w.WriteHeader(http.StatusOK)
 	})
-	server.HandleFunc("/metrics", promhttp.Handler().ServeHTTP)
-	// Add your healthchecks here too
 
 	listener := &http.Server{
-		Addr:              fmt.Sprintf(":%s", cfg.Server.HttpPort),
+		Addr:              fmt.Sprintf(":%s", HTTPPort),
 		ReadHeaderTimeout: cfg.Server.Timeout,
 		Handler:           server,
 	}

@@ -11,7 +11,7 @@ type Config struct {
 	Mode     string `mapstructure:"mode"`
 	Dotenv   string `mapstructure:"dotenv"`
 	Handlers struct {
-		ExternalApi struct {
+		ExternalAPI struct {
 			Port      string `mapstrucutre:"port"`
 			CertFile  string `mapstructure:"certFile"`
 			KeyFile   string `mapstructure:"keyFile"`
@@ -46,7 +46,7 @@ type Config struct {
 		}
 	}
 	Server struct {
-		HttpPort       string        `mapstructure:"HTTPPort"`
+		HTTPPort       string        `mapstructure:"HTTPPort"`
 		GrpcPort       string        `mapstructure:"GRPCPort"`
 		Timeout        time.Duration `mapstructure:"HTTPTimeout"`
 		CustomerBroker *customer.Broker

@@ -34,6 +34,7 @@ func configure(level zapcore.Level) zap.Config {
 	encoder := zap.NewProductionEncoderConfig()
 	encoder.TimeKey = "timestamp"
 	encoder.EncodeTime = zapcore.ISO8601TimeEncoder
+	encoder.EncodeCaller = zapcore.ShortCallerEncoder
 
 	return zap.Config{
 		Level:             zap.NewAtomicLevelAt(level),
