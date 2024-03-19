@@ -12,6 +12,7 @@ log-p:
 
 log-r:
 	docker logs --details --follow --timestamps --tail=1000 inkme-dev-redis
+
 run-prom:
 	prometheus --config.file=./configs/prometheus.yml
 
