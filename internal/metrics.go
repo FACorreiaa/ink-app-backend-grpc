@@ -1,12 +1,11 @@
 package internal
 
 import (
+	"context"
 	"log"
 	"math/rand"
 	"net/http"
 	"time"
-
-	"context"
 
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
@@ -19,7 +18,6 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 	"go.uber.org/zap"
 )
@@ -29,6 +27,7 @@ const meterName = "github.com/open-telemetry/opentelemetry-go/example/prometheus
 func setupPrometheusRegistry(ctx context.Context) (*prometheus.Registry, error) {
 	// Initialize Prometheus registry
 	reg := prometheus.NewRegistry()
+	//#nosec
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	exporter, err := expo.New(expo.WithRegisterer(reg))
@@ -81,16 +80,16 @@ func setupPrometheusRegistry(ctx context.Context) (*prometheus.Registry, error) 
 	return reg, nil
 }
 
-func otelTraceProvider(ctx context.Context) (*sdktrace.TracerProvider, error) {
+func otelTraceProvider(ctx context.Context) (*trace.TracerProvider, error) {
 	exp, err := otlptracegrpc.New(ctx)
 	if err != nil {
 		zap.Error(err)
-		panic(err)
+		return nil, err
 	}
 
-	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithBatcher(exp),
-		sdktrace.WithResource(resource.NewWithAttributes(
+	tp := trace.NewTracerProvider(
+		trace.WithBatcher(exp),
+		trace.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String("todo-service"),
 			semconv.DeploymentEnvironmentKey.String("production"),

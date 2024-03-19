@@ -16,5 +16,5 @@ run-prom:
 	prometheus --config.file=./configs/prometheus.yml
 
 go-lint: ## Runs linter for .go files
-	@golangci-lint run --config .config/go.yml
+	@golangci-lint run --config ./config/go.yml
 	@echo "Go lint passed successfully"

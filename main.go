@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/config"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal"
@@ -19,17 +18,19 @@ import (
 // locations in the service's './internal' directory
 
 func run() {
+	_, cancel := context.WithCancel(context.Background())
+
 	log := logger.Log
 	dbConfig, err := internal.NewDatabaseConfig()
 	if err != nil {
 		log.Error("failed to initialize database configuration", zap.Error(err))
-		os.Exit(1)
+		defer cancel()
 	}
 
 	pool, err := internal.Init(dbConfig.ConnectionURL)
 	if err != nil {
 		log.Error("failed to initialize database pool", zap.Error(err))
-		os.Exit(1)
+		defer cancel()
 	}
 	defer pool.Close()
 
@@ -41,7 +42,7 @@ func run() {
 		err = redisConfig.Close()
 		if err != nil {
 			fmt.Print(err)
-			os.Exit(1)
+			defer cancel()
 		}
 	}(redisConfig)
 
@@ -55,7 +56,7 @@ func run() {
 	log.Info("Connected to Redis", zap.String("host", cfg.Repositories.Redis.Host))
 	if err = internal.Migrate(pool); err != nil {
 		zap.Error(err)
-		os.Exit(1)
+		defer cancel()
 	}
 }
 
@@ -105,7 +106,7 @@ func main() {
 		}
 	}()
 
-	if err := internal.ServeHTTP(cfg.Server.HttpPort); err != nil {
+	if err := internal.ServeHTTP(cfg.Server.HTTPPort); err != nil {
 		logger.Log.Error("failed to serve http", zap.Error(err))
 		return
 	}

@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"crypto/md5"
+	"crypto/sha256"
 	"embed"
 	"fmt"
 	"log"
@@ -132,13 +132,20 @@ func WaitForDB(pgpool *pgxpool.Pool) {
 	}
 }
 
+func hashVal(contents []byte) string {
+	hashed := sha256.New()
+	hashed.Write(contents)
+	return fmt.Sprintf("%x", hashed.Sum(nil))
+}
 func Migrate(conn *pgxpool.Pool) error {
+
 	// migrate db
 	l := logger.Log
 	l.Info("Running migrations")
 	ctx := context.Background()
 	files, err := migrationFS.ReadDir("migrations")
 	if err != nil {
+		zap.Error(err)
 		return err
 	}
 
@@ -165,6 +172,7 @@ func Migrate(conn *pgxpool.Pool) error {
 	})
 
 	if err != nil {
+		zap.Error(err)
 		return err
 	}
 
@@ -173,8 +181,8 @@ func Migrate(conn *pgxpool.Pool) error {
 		if err != nil {
 			return err
 		}
-
-		contentHash := fmt.Sprintf("%x", md5.Sum(contents))
+		val := hashVal(contents)
+		contentHash := fmt.Sprintf("%x", val)
 
 		if prevHash, ok := appliedMigrations[file.Name()]; ok {
 			if prevHash != contentHash {
@@ -199,6 +207,7 @@ func Migrate(conn *pgxpool.Pool) error {
 		})
 
 		if err != nil {
+			zap.Error(err)
 			return err
 		}
 		l.Info(file.Name() + " applied")

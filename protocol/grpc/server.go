@@ -38,6 +38,9 @@ func BootstrapServer(
 	promCollectors := grpcprometheus.NewPrometheusMetricsCollectors()
 	// Must be called before using Prometheus interceptors
 	err = grpcprometheus.RegisterMetrics(registry, promCollectors)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to register prometheus")
+	}
 	_, promInterceptor, err := grpcprometheus.Interceptors(promCollectors)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to create Prometheus interceptors")

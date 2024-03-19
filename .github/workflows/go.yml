@@ -22,7 +22,7 @@ jobs:
 
     - name: Run Go Lint
       run: |
-        golangci-lint run --config config/go.yml
+        golangci-lint run --config ./config/go.yml
         echo "Go lint passed successfully"
 
     - name: Build

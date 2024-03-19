@@ -43,7 +43,7 @@ func ServeGRPC(ctx context.Context, port string, brokers *container.Brokers) err
 	}
 
 	// Replace with your actual handler service
-	//implementation, err := service.NewDummyService(brokers)
+	// implementation, err := service.NewDummyService(brokers)
 	if err != nil {
 		return errors.Wrap(err, "failed to initialize grpc handler service")
 	}
@@ -74,8 +74,8 @@ func ServeGRPC(ctx context.Context, port string, brokers *container.Brokers) err
 // ServeHTTP creates a simple server to serve Prometheus metrics for
 // the collector, and (not included) healthcheck endpoints for K8S to
 // query readiness. By default these should serve on "/healthz" and "/readyz"
-func ServeHTTP(HTTPPort string) error {
-	logger.Log.Info("running http server", zap.String("port", HTTPPort))
+func ServeHTTP(port string) error {
+	logger.Log.Info("running http server", zap.String("port", port))
 
 	cfg, err := config.InitConfig()
 	if err != nil {
@@ -100,7 +100,7 @@ func ServeHTTP(HTTPPort string) error {
 	// Add your healthchecks here too
 
 	listener := &http.Server{
-		Addr:              fmt.Sprintf(":%s", cfg.Server.HttpPort),
+		Addr:              fmt.Sprintf(":%s", port),
 		ReadHeaderTimeout: cfg.Server.Timeout,
 		Handler:           server,
 	}
