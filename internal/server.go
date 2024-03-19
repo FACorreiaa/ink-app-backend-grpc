@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"sync/atomic"
 
-	"github.com/FACorreiaa/ink-app-backend-grpc/.config"
+	"github.com/FACorreiaa/ink-app-backend-grpc/config"
 	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
 	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc"
 	"github.com/FACorreiaa/ink-app-backend-protos/container"
@@ -49,7 +49,7 @@ func ServeGRPC(ctx context.Context, port string, brokers *container.Brokers) err
 	}
 
 	// Replace with your actual generated registration method
-	//generated.RegisterDummyServer(server, implementation)
+	// generated.RegisterDummyServer(server, implementation)
 
 	// Enable reflection to be able to use grpcui or insomnia without
 	// having to manually maintain .proto files
@@ -77,7 +77,7 @@ func ServeGRPC(ctx context.Context, port string, brokers *container.Brokers) err
 func ServeHTTP(HTTPPort string) error {
 	logger.Log.Info("running http server", zap.String("port", HTTPPort))
 
-	cfg, err := _config.InitConfig()
+	cfg, err := config.InitConfig()
 	if err != nil {
 		zap.Error(err)
 	}

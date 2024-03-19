@@ -12,7 +12,7 @@ import (
 
 	"context"
 
-	"github.com/FACorreiaa/ink-app-backend-grpc/.config"
+	"github.com/FACorreiaa/ink-app-backend-grpc/config"
 	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -48,7 +48,7 @@ type DatabaseConfig struct {
 }
 
 func NewRedisConfig() (*redis.Client, error) {
-	cfg, err := _config.InitConfig()
+	cfg, err := config.InitConfig()
 	pass := GetEnv("REDIS_PASSWORD", "")
 
 	if err != nil {
@@ -62,7 +62,7 @@ func NewRedisConfig() (*redis.Client, error) {
 }
 
 func NewDatabaseConfig() (*DatabaseConfig, error) {
-	cfg, err := _config.InitConfig()
+	cfg, err := config.InitConfig()
 	if err != nil {
 		log.Println(err)
 		log.Fatal("Failed loading Postgres config")

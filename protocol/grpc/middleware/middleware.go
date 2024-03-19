@@ -20,7 +20,13 @@ var (
 func initializeLogger() {
 	// Initialize Zap logger
 	Log, _ = zap.NewProduction()
-	defer Log.Sync() // Flushes buffer, if any
+	defer func(Log *zap.Logger) {
+		err := Log.Sync()
+		if err != nil {
+			zap.Error(err)
+			log.Fatal(err)
+		}
+	}(Log) // Flushes buffer, if any
 }
 
 func KeepaliveEnforcementPolicy() keepalive.EnforcementPolicy {

@@ -30,7 +30,7 @@ func RegisterMetrics(registry *prometheus.Registry, collectors *Collectors) erro
 	}
 
 	if collectors.Client != nil {
-		// registry.MustRegister(collectors.Client)
+		registry.MustRegister(collectors.Client)
 	}
 
 	if collectors.Server != nil {

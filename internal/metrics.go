@@ -108,7 +108,7 @@ func otelTraceProvider(ctx context.Context) (*sdktrace.TracerProvider, error) {
 	return tp, nil
 }
 
-//func setupOtelTraceProvider() (func(context.Context) error, error) {
+// func setupOtelTraceProvider() (func(context.Context) error, error) {
 //	ctx := context.Background()
 //
 //	res, err := resource.New(ctx,
