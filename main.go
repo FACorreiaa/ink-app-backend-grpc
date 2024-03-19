@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/FACorreiaa/ink-app-backend-grpc/configs"
+	"github.com/FACorreiaa/ink-app-backend-grpc/.config"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal"
 	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
 	"github.com/FACorreiaa/ink-app-backend-protos/utils"
@@ -45,7 +45,7 @@ func run() {
 		}
 	}(redisConfig)
 
-	cfg, _ := configs.InitConfig()
+	cfg, _ := _config.InitConfig()
 	// db.WaitForRedis(redisClient)
 
 	if err != nil {
@@ -64,7 +64,7 @@ func main() {
 
 	// You should get these from your config object instead
 	// yml config
-	cfg, err := configs.InitConfig()
+	cfg, err := _config.InitConfig()
 	if err != nil {
 		zap.Error(err)
 	}

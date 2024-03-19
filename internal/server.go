@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"sync/atomic"
 
-	"github.com/FACorreiaa/ink-app-backend-grpc/configs"
+	"github.com/FACorreiaa/ink-app-backend-grpc/.config"
 	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
 	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc"
 	"github.com/FACorreiaa/ink-app-backend-protos/container"
@@ -77,7 +77,7 @@ func ServeGRPC(ctx context.Context, port string, brokers *container.Brokers) err
 func ServeHTTP(HTTPPort string) error {
 	logger.Log.Info("running http server", zap.String("port", HTTPPort))
 
-	cfg, err := configs.InitConfig()
+	cfg, err := _config.InitConfig()
 	if err != nil {
 		zap.Error(err)
 	}

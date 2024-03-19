@@ -1,4 +1,4 @@
-package configs
+package _config
 
 import (
 	"time"
@@ -59,7 +59,7 @@ type Config struct {
 func InitConfig() (Config, error) {
 	var config Config
 	v := viper.New()
-	v.AddConfigPath("configs")
+	v.AddConfigPath(".config")
 	v.SetConfigName("config")
 
 	if err := v.ReadInConfig(); err != nil {
