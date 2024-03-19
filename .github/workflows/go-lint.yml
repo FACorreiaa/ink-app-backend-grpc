@@ -1,0 +1,36 @@
+name: golangci-lint
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+  # Optional: allow read access to pull request. Use with `only-new-issues` option.
+  # pull-requests: read
+
+jobs:
+  lint:
+    name: Lint Go files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.22.1
+
+      - name: Install golangci-lint
+        run: |
+          curl -sSfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.42.1
+
+      - name: Run golangci-lint
+        run: golangci-lint run --config ./config/go.yml
+
+      - name: Run go mod tidy
+        run: go mod tidy
