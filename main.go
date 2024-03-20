@@ -6,6 +6,7 @@ import (
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/config"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal"
+	"github.com/FACorreiaa/ink-app-backend-grpc/internal/metrics"
 	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
 	"github.com/FACorreiaa/ink-app-backend-protos/utils"
 	"github.com/redis/go-redis/v9"
@@ -110,5 +111,7 @@ func main() {
 		logger.Log.Error("failed to serve http", zap.Error(err))
 		return
 	}
+
+	metrics.InitPprof()
 
 }
