@@ -19,3 +19,6 @@ run-prom:
 go-lint: ## Runs linter for .go files
 	@golangci-lint run --config ./config/go.yml
 	@echo "Go lint passed successfully"
+
+go-pprof:
+	go tool pprof http://localhost:6060/debug/pprof/profile
