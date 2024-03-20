@@ -20,6 +20,7 @@ import (
 
 func run() {
 	_, cancel := context.WithCancel(context.Background())
+	cfg, _ := config.InitConfig()
 
 	log := logger.Log
 	dbConfig, err := internal.NewDatabaseConfig()
@@ -36,6 +37,7 @@ func run() {
 	defer pool.Close()
 
 	internal.WaitForDB(pool)
+	log.Info("Connected to Postgres", zap.String("host", cfg.Repositories.Postgres.Host))
 
 	redisConfig, err := internal.NewRedisConfig()
 
@@ -46,9 +48,6 @@ func run() {
 			defer cancel()
 		}
 	}(redisConfig)
-
-	cfg, _ := config.InitConfig()
-	// db.WaitForRedis(redisClient)
 
 	if err != nil {
 		log.Error("failed to initialize Redis configuration", zap.Error(err))
@@ -95,6 +94,9 @@ func main() {
 		return
 	}
 
+	// InitPprof golang pprof
+	metrics.InitPprof()
+
 	// Listeners are blocking so make sure that you're running
 	// them as goroutines. You could use a waitgroup, but you run
 	// the risk of deadlock panics - We usually put the gRPC server
@@ -111,7 +113,5 @@ func main() {
 		logger.Log.Error("failed to serve http", zap.Error(err))
 		return
 	}
-
-	metrics.InitPprof()
 
 }
