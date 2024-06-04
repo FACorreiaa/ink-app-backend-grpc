@@ -2,74 +2,70 @@ package main
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/config"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal/metrics"
 	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
 	"github.com/FACorreiaa/ink-app-backend-protos/utils"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
-// This is just an example - Do not copy verbatim
-// ---
-// In practice, everything other than main lives in various
-// locations in the service's './internal' directory
+func run() (*pgxpool.Pool, *redis.Client, error) {
+	//ctx, cancel := context.WithCancel(context.Background())
+	//defer cancel()
 
-func run() {
-	_, cancel := context.WithCancel(context.Background())
-	cfg, _ := config.InitConfig()
+	cfg, err := config.InitConfig()
+	if err != nil {
+		logger.Log.Error("failed to initialize config", zap.Error(err))
+		return nil, nil, err
+	}
 
 	log := logger.Log
+
 	dbConfig, err := internal.NewDatabaseConfig()
 	if err != nil {
 		log.Error("failed to initialize database configuration", zap.Error(err))
-		defer cancel()
+		return nil, nil, err
 	}
 
 	pool, err := internal.Init(dbConfig.ConnectionURL)
 	if err != nil {
 		log.Error("failed to initialize database pool", zap.Error(err))
-		defer cancel()
+		return nil, nil, err
 	}
-	defer pool.Close()
-
 	internal.WaitForDB(pool)
 	log.Info("Connected to Postgres", zap.String("host", cfg.Repositories.Postgres.Host))
 
-	redisConfig, err := internal.NewRedisConfig()
-
-	defer func(redisConfig *redis.Client) {
-		err = redisConfig.Close()
-		if err != nil {
-			fmt.Print(err)
-			defer cancel()
-		}
-	}(redisConfig)
-
+	redisClient, err := internal.NewRedisConfig()
 	if err != nil {
 		log.Error("failed to initialize Redis configuration", zap.Error(err))
-		return
+		pool.Close()
+		return nil, nil, err
 	}
+
 	log.Info("Connected to Redis", zap.String("host", cfg.Repositories.Redis.Host))
+
 	if err = internal.Migrate(pool); err != nil {
-		zap.Error(err)
-		defer cancel()
+		log.Error("failed to migrate database", zap.Error(err))
+		pool.Close()
+		redisClient.Close()
+		return nil, nil, err
 	}
+
+	return pool, redisClient, nil
 }
 
 func main() {
 	ctx := context.Background()
 
-	// You should get these from your config object instead
-	// yml config
 	cfg, err := config.InitConfig()
 	if err != nil {
 		zap.Error(err)
 	}
-	// Setup logging (found in ./logger)
+
 	if err := logger.Init(
 		zap.DebugLevel,
 		zap.String("service", "example"),
@@ -81,29 +77,26 @@ func main() {
 
 	log := logger.Log
 
-	run()
+	pool, redisClient, err := run()
+	if err != nil {
+		log.Error("failed to run the application", zap.Error(err))
+		return
+	}
+	defer pool.Close()
+	defer redisClient.Close()
 
-	// Configure tracing & Prometheus first...
 	tu := new(utils.TransportUtils)
 
-	// Setup clients BEFORE setting up servers
 	brokers := internal.ConfigureUpstreamClients(log, tu)
 	if brokers == nil {
 		logger.Log.Error("failed to configure brokers")
-
 		return
 	}
 
-	// InitPprof golang pprof
 	metrics.InitPprof()
 
-	// Listeners are blocking so make sure that you're running
-	// them as goroutines. You could use a waitgroup, but you run
-	// the risk of deadlock panics - We usually put the gRPC server
-	// and any background workers in goroutines, and leave the HTTP
-	// metrics server as the final keepalive for the process
 	go func() {
-		if err := internal.ServeGRPC(ctx, cfg.Server.GrpcPort, brokers); err != nil {
+		if err := internal.ServeGRPC(ctx, cfg.Server.GrpcPort, brokers, pool, redisClient); err != nil {
 			logger.Log.Error("failed to serve grpc", zap.Error(err))
 			return
 		}
@@ -113,5 +106,4 @@ func main() {
 		logger.Log.Error("failed to serve http", zap.Error(err))
 		return
 	}
-
 }

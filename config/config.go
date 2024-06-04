@@ -53,6 +53,7 @@ type Config struct {
 	} `mapstructure:"server"`
 	UpstreamServices struct {
 		Customer string `mapstructure:"customer"`
+		Auth     string `mapstructure:"auth"`
 	} `mapstructure:"upstreamServices"`
 }
 

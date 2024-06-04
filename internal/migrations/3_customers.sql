@@ -8,6 +8,6 @@ CREATE TABLE "costumer" (
                         suffix VARCHAR(255),
                         nickname VARCHAR(255),
                         email VARCHAR(255),
-                        phone VARCHAR(255),
+                        phone VARCHAR(255)
   -- Add other fields as needed
 );

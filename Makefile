@@ -22,3 +22,6 @@ go-lint: ## Runs linter for .go files
 
 go-pprof:
 	go tool pprof http://localhost:6060/debug/pprof/profile
+
+update:
+	go get -u

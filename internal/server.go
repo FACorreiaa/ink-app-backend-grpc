@@ -9,11 +9,19 @@ import (
 	"sync/atomic"
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/config"
+	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain"
+	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain/repository"
+	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain/service"
 	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
 	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc"
 	"github.com/FACorreiaa/ink-app-backend-protos/container"
+	cpb "github.com/FACorreiaa/ink-app-backend-protos/modules/customer/generated"
+	upb "github.com/FACorreiaa/ink-app-backend-protos/modules/user/generated"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/reflection"
 )
@@ -24,7 +32,7 @@ import (
 // the gRPC server is ready to handle requests
 var isReady atomic.Value
 
-func ServeGRPC(ctx context.Context, port string, brokers *container.Brokers) error {
+func ServeGRPC(ctx context.Context, port string, brokers *container.Brokers, pgPool *pgxpool.Pool, redisClient *redis.Client) error {
 	// When you have a configured prometheus registry and OTEL trace provider,
 	// pass in as param 3 & 4
 
@@ -42,17 +50,24 @@ func ServeGRPC(ctx context.Context, port string, brokers *container.Brokers) err
 		return errors.Wrap(err, "failed to configure grpc server")
 	}
 
-	// Replace with your actual handler service
-	// implementation, err := service.NewDummyService(brokers)
-	if err != nil {
-		return errors.Wrap(err, "failed to initialize grpc handler service")
-	}
-
 	// Replace with your actual generated registration method
 	// generated.RegisterDummyServer(server, implementation)
+	// client := generated.NewCustomerClient(brokers.Customer)
+
+	// customerService and any implementation is a dependency that is injected to dest and delete
+	customerService := domain.NewCustomerService(pgPool, redisClient)
+
+	// implement brokers
+
+	authRepo := repository.NewAuthService(pgPool, redisClient)
+	authService := service.NewAuthService(authRepo)
+
+	cpb.RegisterCustomerServer(server, customerService)
+	upb.RegisterAuthServer(server, authService)
 
 	// Enable reflection to be able to use grpcui or insomnia without
 	// having to manually maintain .proto files
+
 	reflection.Register(server)
 
 	c := make(chan os.Signal, 1)

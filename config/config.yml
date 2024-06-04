@@ -51,4 +51,5 @@ server:
 
 upstreamServices:
   customer: "example.com:1234"
+  auth: "example.com:1234"
 
