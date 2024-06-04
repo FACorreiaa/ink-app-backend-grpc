@@ -14,8 +14,8 @@ import (
 )
 
 func run() (*pgxpool.Pool, *redis.Client, error) {
-	//ctx, cancel := context.WithCancel(context.Background())
-	//defer cancel()
+	// ctx, cancel := context.WithCancel(context.Background())
+	// defer cancel()
 
 	cfg, err := config.InitConfig()
 	if err != nil {

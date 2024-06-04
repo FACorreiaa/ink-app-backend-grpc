@@ -50,5 +50,5 @@ func BootstrapClient(
 	// Add any additional options
 	connOptions = append(connOptions, opts...)
 
-	return grpc.Dial(address, connOptions...)
+	return grpc.NewClient(address, connOptions...)
 }

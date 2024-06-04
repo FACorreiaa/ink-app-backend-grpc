@@ -32,7 +32,7 @@ import (
 // the gRPC server is ready to handle requests
 var isReady atomic.Value
 
-func ServeGRPC(ctx context.Context, port string, brokers *container.Brokers, pgPool *pgxpool.Pool, redisClient *redis.Client) error {
+func ServeGRPC(ctx context.Context, port string, _ *container.Brokers, pgPool *pgxpool.Pool, redisClient *redis.Client) error {
 	// When you have a configured prometheus registry and OTEL trace provider,
 	// pass in as param 3 & 4
 
@@ -88,7 +88,7 @@ func ServeGRPC(ctx context.Context, port string, brokers *container.Brokers, pgP
 
 // ServeHTTP creates a simple server to serve Prometheus metrics for
 // the collector, and (not included) healthcheck endpoints for K8S to
-// query readiness. By default these should serve on "/healthz" and "/readyz"
+// query readiness. By default, these should serve on "/healthz" and "/readyz"
 func ServeHTTP(port string) error {
 	logger.Log.Info("running http server", zap.String("port", port))
 
