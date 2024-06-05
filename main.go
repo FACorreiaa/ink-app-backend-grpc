@@ -59,6 +59,7 @@ func run() (*pgxpool.Pool, *redis.Client, error) {
 }
 
 func main() {
+
 	ctx := context.Background()
 
 	cfg, err := config.InitConfig()
@@ -97,13 +98,13 @@ func main() {
 
 	go func() {
 		if err := internal.ServeGRPC(ctx, cfg.Server.GrpcPort, brokers, pool, redisClient); err != nil {
-			logger.Log.Error("failed to serve grpc", zap.Error(err))
+			log.Error("failed to serve grpc", zap.Error(err))
 			return
 		}
 	}()
 
 	if err := internal.ServeHTTP(cfg.Server.HTTPPort); err != nil {
-		logger.Log.Error("failed to serve http", zap.Error(err))
+		log.Error("failed to serve http", zap.Error(err))
 		return
 	}
 }

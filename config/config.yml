@@ -47,7 +47,7 @@ repositories:
 server:
   HTTPPort: "6969"
   GRPCPort: "8080"
-  HTTPTimeout: 5
+  HTTPTimeout: 15s
 
 upstreamServices:
   customer: "example.com:1234"

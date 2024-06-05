@@ -33,6 +33,8 @@ import (
 var isReady atomic.Value
 
 func ServeGRPC(ctx context.Context, port string, _ *container.Brokers, pgPool *pgxpool.Pool, redisClient *redis.Client) error {
+	log := logger.Log
+
 	// When you have a configured prometheus registry and OTEL trace provider,
 	// pass in as param 3 & 4
 
@@ -74,7 +76,7 @@ func ServeGRPC(ctx context.Context, port string, _ *container.Brokers, pgPool *p
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		for range c {
-			logger.Log.Warn("shutting down grpc server")
+			log.Warn("shutting down grpc server")
 			server.GracefulStop()
 			<-ctx.Done()
 		}
@@ -82,7 +84,7 @@ func ServeGRPC(ctx context.Context, port string, _ *container.Brokers, pgPool *p
 
 	isReady.Store(true)
 
-	logger.Log.Info("running grpc server", zap.String("port", port))
+	log.Info("running grpc server", zap.String("port", port))
 	return server.Serve(listener)
 }
 
@@ -90,7 +92,10 @@ func ServeGRPC(ctx context.Context, port string, _ *container.Brokers, pgPool *p
 // the collector, and (not included) healthcheck endpoints for K8S to
 // query readiness. By default, these should serve on "/healthz" and "/readyz"
 func ServeHTTP(port string) error {
-	logger.Log.Info("running http server", zap.String("port", port))
+	log := logger.Log
+	log.Info("running http server", zap.String("port", port))
+
+	log.Info("running http server", zap.String("port", port))
 
 	cfg, err := config.InitConfig()
 	if err != nil {

@@ -15,4 +15,8 @@ type AuthRepository interface {
 
 	// GetAllUsers Users Methods
 	GetAllUsers(ctx context.Context) (*pb.GetAllUsersResponse, error)
+	GetUserByID(ctx context.Context, req *pb.GetUserByIDRequest) (*pb.GetUserByIDResponse, error)
+	DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error)
+	UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error)
+	InsertUser(ctx context.Context, req *pb.InsertUserRequest) (*pb.InsertUserResponse, error)
 }
