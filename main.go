@@ -59,7 +59,6 @@ func run() (*pgxpool.Pool, *redis.Client, error) {
 }
 
 func main() {
-
 	ctx := context.Background()
 
 	cfg, err := config.InitConfig()

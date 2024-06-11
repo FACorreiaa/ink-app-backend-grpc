@@ -3,6 +3,7 @@ create table "user" (
                       username citext unique not null,
                       email citext unique not null,
                       password_hash text not null,
+                      is_tattoo_artist boolean not null default false,
                       bio text not null default '',
                       image text,
                       created_at timestamptz not null default now(),

@@ -106,21 +106,20 @@ func ServeHTTP(port string) error {
 
 	server := http.NewServeMux()
 	// Add healthcheck endpoints
-	server.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+	server.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		// Perform health check logic here
 		// For example, check if the server is healthy
 		// Respond with appropriate status code
 		w.WriteHeader(http.StatusOK)
 	})
 
-	server.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
+	server.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
 		// Perform readiness check logic here
 		// For example, check if the server is ready to receive traffic
 		// Respond with appropriate status code
 		w.WriteHeader(http.StatusOK)
 	})
 	server.HandleFunc("/metrics", promhttp.Handler().ServeHTTP)
-	// Add your healthchecks here too
 
 	listener := &http.Server{
 		Addr:              fmt.Sprintf(":%s", port),
