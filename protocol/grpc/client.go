@@ -25,10 +25,15 @@ func BootstrapClient(
 		propagation.TraceContext{},
 		propagation.Baggage{},
 	))
+
+	//
+
 	spanInterceptor, _ := grpcspan.Interceptors()
 
 	// -- Zap logging interceptor setup
 	logInterceptor, _ := grpclog.Interceptors(log)
+
+	// -- Prometheus exporter setup
 
 	connOptions := []grpc.DialOption{
 		// We terminate TLS in the linkerd sidecar, so no need for TLS on the listen server

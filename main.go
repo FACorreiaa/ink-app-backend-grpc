@@ -64,7 +64,8 @@ func main() {
 
 	cfg, err := config.InitConfig()
 	if err != nil {
-		zap.Error(err)
+		zap.L().Error("failed to initialize config", zap.Error(err))
+		return
 	}
 
 	if err := logger.Init(
@@ -90,7 +91,7 @@ func main() {
 
 	brokers := internal.ConfigureUpstreamClients(log, tu)
 	if brokers == nil {
-		logger.Log.Error("failed to configure brokers")
+		log.Error("failed to configure brokers")
 		return
 	}
 

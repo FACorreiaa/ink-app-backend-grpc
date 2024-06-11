@@ -98,9 +98,12 @@ func ServeHTTP(port string) error {
 	log.Info("running http server", zap.String("port", port))
 
 	cfg, err := config.InitConfig()
+
 	if err != nil {
-		zap.Error(err)
+		log.Error("failed to initialize config", zap.Error(err))
+		return err
 	}
+
 	server := http.NewServeMux()
 	// Add healthcheck endpoints
 	server.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
