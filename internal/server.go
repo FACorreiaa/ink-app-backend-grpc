@@ -8,15 +8,16 @@ import (
 	"os/signal"
 	"sync/atomic"
 
+	"github.com/FACorreiaa/ink-app-backend-protos/container"
+	cpb "github.com/FACorreiaa/ink-app-backend-protos/modules/customer/generated"
+	upb "github.com/FACorreiaa/ink-app-backend-protos/modules/user/generated"
+
 	"github.com/FACorreiaa/ink-app-backend-grpc/config"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain/repository"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain/service"
 	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
 	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc"
-	"github.com/FACorreiaa/ink-app-backend-protos/container"
-	cpb "github.com/FACorreiaa/ink-app-backend-protos/modules/customer/generated"
-	upb "github.com/FACorreiaa/ink-app-backend-protos/modules/user/generated"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
@@ -26,7 +27,7 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-// -- Server components
+// --- Server components
 
 // isReady is used for kube liveness probes, it's only latched to true once
 // the gRPC server is ready to handle requests

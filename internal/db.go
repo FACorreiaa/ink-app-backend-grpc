@@ -12,13 +12,14 @@ import (
 
 	"context"
 
-	"github.com/FACorreiaa/ink-app-backend-grpc/config"
-	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 	uuid "github.com/vgarvardt/pgx-google-uuid/v5"
+
+	"github.com/FACorreiaa/ink-app-backend-grpc/config"
+	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -71,13 +72,6 @@ func NewDatabaseConfig() (*DatabaseConfig, error) {
 	if err != nil {
 		log.Println(err)
 		log.Fatal("Error loading .env file")
-	}
-
-	if os.Getenv("APP_ENV") == "dev" {
-		if err != nil {
-			log.Println(err)
-			log.Fatal("Error loading .env file")
-		}
 	}
 
 	pass := GetEnv("DB_PASS", "")

@@ -33,19 +33,19 @@ services:
 repositories:
   postgres:
     host: localhost
-    port: "5435"
+    port: "5438"
     username: "postgres"
     db: "ink-me-dev"
     SSLMODE: "verify-full"
     MAXCONWAITINGTIME: 10
   redis:
-    host: "redis:8379"
+    host: "redis:6382"
     db: 0
 
 
 #change later
 server:
-  HTTPPort: "6969"
+  HTTPPort: "7070"
   GRPCPort: "8080"
   HTTPTimeout: 15s
 

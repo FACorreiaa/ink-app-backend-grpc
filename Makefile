@@ -14,7 +14,7 @@ log-r:
 	docker logs --details --follow --timestamps --tail=1000 inkme-dev-redis
 
 run-prom:
-	prometheus --config.file=./configs/prometheus.yml
+	prometheus --config.file=config/prometheus.yml
 
 go-lint: ## Runs linter for .go files
 	@golangci-lint run --config ./config/go.yml
@@ -25,3 +25,7 @@ go-pprof:
 
 update:
 	go get -u
+
+down-dev:
+	docker compose down
+	rm -rf .data

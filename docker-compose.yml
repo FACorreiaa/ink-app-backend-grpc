@@ -8,13 +8,12 @@ services:
     hostname: postgres
     image: postgres:alpine
     environment:
-      POSTGRES_HOST: postgres
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_HOST_AUTH_METHOD: trust
     ports:
-      - "5435:5432"
+      - "5438:5432"
     restart: on-failure
     volumes:
       - ./.data/docker-postgres:/var/lib/postgresql/data
@@ -26,15 +25,11 @@ services:
     container_name: inkme-dev-redis
     hostname: redis
     image: redis:latest
-    command: redis-server --port 6380
+    command: redis-server --port 6382
     ports:
-      - "6380:6380"
+      - "6382:6382"
     expose:
-      - "6380"
-    #    environment:
-    #      REDIS_HOST: ${REDIS_HOST}
-    #      REDIS_PASSWORD: ${REDIS_PASSWORD}
-    #      REDIS_DB: ${REDIS_DB}
+      - "6382"
     volumes:
       - ./.data/docker-redis:/var/lib/redis/data
     networks:
