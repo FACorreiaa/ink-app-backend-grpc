@@ -1,0 +1,49 @@
+graph TB
+    subgraph "Phase 1: Core Platform"
+        A1["Authentication & User Profiles"]
+        A2["Basic Messaging"]
+        A3["Client Database"]
+        A4["Appointment Scheduling"]
+        A5["File Storage & Sharing"]
+        
+        A1 --> A2
+        A2 --> A3
+        A3 --> A4
+        A4 --> A5
+    end
+
+    subgraph "Phase 2: Artist Tools"
+        B1["Portfolio Management"]
+        B2["Instagram Integration"]
+        B3["Payment Processing"]
+        B4["Basic Analytics"]
+        
+        A5 --> B1
+        B1 --> B2
+        B2 --> B3
+        B3 --> B4
+    end
+
+    subgraph "Phase 3: Advanced Features"
+        C1["Video Consultations"]
+        C2["Design Collaboration Tools"]
+        C3["Advanced Analytics"]
+        C4["Automated Marketing"]
+        
+        B4 --> C1
+        C1 --> C2
+        C2 --> C3
+        C3 --> C4
+    end
+
+    subgraph "Phase 4: Ecosystem"
+        D1["Artist Marketplace"]
+        D2["Client Mobile App"]
+        D3["AI Design Suggestions"]
+        D4["Community Features"]
+        
+        C4 --> D1
+        D1 --> D2
+        D2 --> D3
+        D3 --> D4
+    end

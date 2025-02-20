@@ -1,0 +1,38 @@
+graph TB
+    subgraph "API Gateway"
+        Gateway["gRPC Gateway"]
+        Auth["Auth Middleware"]
+        Logger["Logging Middleware"]
+        Metrics["Metrics Middleware"]
+    end
+
+    subgraph "Core Services"
+        UserSvc["User Service"]
+        AISvc["AI Service"]
+        ChatSvc["Chat Service"]
+        MediaSvc["Media Service"]
+        SocialSvc["Social Service"]
+    end
+
+    subgraph "Data Layer"
+        DB["PostgreSQL"]
+        Cache["Redis"]
+        Queue["Message Queue"]
+        Storage["Object Storage"]
+    end
+
+    Gateway --> Auth
+    Auth --> Logger
+    Logger --> Metrics
+
+    Metrics --> UserSvc
+    Metrics --> AISvc
+    Metrics --> ChatSvc
+    Metrics --> MediaSvc
+    Metrics --> SocialSvc
+
+    UserSvc --> DB
+    AISvc --> Queue
+    ChatSvc --> Cache
+    MediaSvc --> Storage
+    SocialSvc --> Cache

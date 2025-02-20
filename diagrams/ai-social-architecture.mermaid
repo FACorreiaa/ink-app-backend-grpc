@@ -1,0 +1,54 @@
+graph TB
+    subgraph "User Interaction Layer"
+        App["Mobile/Web App"]
+        Chat["Chat Interface"]
+        Video["Video Call UI"]
+        Gallery["Style Gallery"]
+    end
+
+    subgraph "AI Services"
+        StyleAI["Style Analysis AI"]
+        GenAI["Image Generation AI"]
+        ChatAI["AI Assistant"]
+        
+        subgraph "AI Processing"
+            Vision["Computer Vision"]
+            NLP["Natural Language"]
+            StyleTransfer["Style Transfer"]
+        end
+    end
+
+    subgraph "Communication Services"
+        WebRTC["Video Call Service"]
+        WebSocket["Real-time Chat"]
+        FileShare["File Sharing"]
+        Notifications["Push Notifications"]
+    end
+
+    subgraph "Social Integration"
+        Auth["OAuth Services"]
+        Share["Social Sharing"]
+        
+        subgraph "Platforms"
+            Insta["Instagram API"]
+            Whats["WhatsApp Business API"]
+            Twitter["X/Twitter API"]
+        end
+    end
+
+    App --> Gallery
+    Gallery --> StyleAI
+    StyleAI --> Vision
+    Vision --> GenAI
+    
+    Chat --> WebSocket
+    Chat --> ChatAI
+    ChatAI --> NLP
+    
+    Video --> WebRTC
+    
+    Share --> Insta
+    Share --> Whats
+    Share --> Twitter
+    
+    Auth --> Platforms

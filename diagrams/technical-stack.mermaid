@@ -1,0 +1,42 @@
+graph TB
+    subgraph "Frontend Applications"
+        Web["Web Dashboard\n- React/Next.js\n- Tailwind CSS"]
+        Mobile["Mobile App\n- React Native"]
+        Tablet["Tablet App\n- Swift UI"]
+    end
+
+    subgraph "Backend Services"
+        API["API Gateway\n- Go/gRPC"]
+        Auth["Auth Service\n- OAuth/JWT"]
+        Media["Media Service\n- Image Processing"]
+        Chat["Chat Service\n- WebSocket"]
+    end
+
+    subgraph "Data Storage"
+        DB["PostgreSQL\n- Client Data\n- Appointments"]
+        Cache["Redis\n- Session Data\n- Real-time Features"]
+        Files["S3\n- Media Storage"]
+    end
+
+    subgraph "External Services"
+        Social["Social Media APIs"]
+        Payment["Payment Gateway"]
+        Video["Video Service"]
+    end
+
+    Web --> API
+    Mobile --> API
+    Tablet --> API
+
+    API --> Auth
+    API --> Media
+    API --> Chat
+
+    Auth --> DB
+    Media --> Files
+    Chat --> Cache
+
+    Media --> Social
+    API --> Payment
+    Chat --> Video
+
