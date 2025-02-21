@@ -2,15 +2,19 @@ package main
 
 import (
 	"context"
+	"os"
+	"os/signal"
+
+	"github.com/FACorreiaa/ink-app-backend-protos/utils"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/config"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal/metrics"
 	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
-	"github.com/FACorreiaa/ink-app-backend-protos/utils"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/redis/go-redis/v9"
-	"go.uber.org/zap"
 )
 
 func run() (*pgxpool.Pool, *redis.Client, error) {
@@ -59,7 +63,11 @@ func run() (*pgxpool.Pool, *redis.Client, error) {
 }
 
 func main() {
-	ctx := context.Background()
+	reg := prometheus.NewRegistry()
+	println("Loaded prometheus registry")
+
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
 
 	cfg, err := config.InitConfig()
 	if err != nil {
@@ -94,16 +102,18 @@ func main() {
 		return
 	}
 
+	appContainer := internal.NewAppContainer(ctx, pool, redisClient, brokers, log)
+
 	metrics.InitPprof()
 
 	go func() {
-		if err := internal.ServeGRPC(ctx, cfg.Server.GrpcPort, brokers, pool, redisClient); err != nil {
+		if err := internal.ServeGRPC(ctx, cfg.Server.GrpcPort, appContainer, nil); err != nil {
 			log.Error("failed to serve grpc", zap.Error(err))
 			return
 		}
 	}()
 
-	if err := internal.ServeHTTP(cfg.Server.HTTPPort); err != nil {
+	if err := internal.ServeHTTP(cfg.Server.HTTPPort, reg); err != nil {
 		log.Error("failed to serve http", zap.Error(err))
 		return
 	}

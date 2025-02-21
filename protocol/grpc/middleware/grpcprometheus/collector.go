@@ -2,7 +2,6 @@ package grpcprometheus
 
 import (
 	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
-
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -43,12 +42,9 @@ func RegisterMetrics(registry *prometheus.Registry, collectors *Collectors) erro
 // grpcHandlingTimeHistogramBuckets is the default set of buckets used by both
 // server and client histograms.
 var grpcHandlingTimeHistogramBuckets = []float64{
-	0.001, 0.01, 0.1, 0.3,
-	0.6, 1, 3, 6, 9, 20,
-	30, 60, 90, 120,
+	0.005, 0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10,
 }
 
-// clientMetrics attaches prometheus metrics to the grpc client
 func clientMetrics() *grpcprom.ClientMetrics {
 	return grpcprom.NewClientMetrics(
 		grpcprom.WithClientHandlingTimeHistogram(
@@ -57,7 +53,6 @@ func clientMetrics() *grpcprom.ClientMetrics {
 	)
 }
 
-// clientMetrics attaches prometheus metrics to the grpc server
 func serverMetrics() *grpcprom.ServerMetrics {
 	return grpcprom.NewServerMetrics(
 		grpcprom.WithServerHandlingTimeHistogram(

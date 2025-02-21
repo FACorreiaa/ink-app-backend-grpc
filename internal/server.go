@@ -11,6 +11,9 @@ import (
 	"github.com/FACorreiaa/ink-app-backend-protos/container"
 	cpb "github.com/FACorreiaa/ink-app-backend-protos/modules/customer/generated"
 	upb "github.com/FACorreiaa/ink-app-backend-protos/modules/user/generated"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/auth"
+	"github.com/prometheus/client_golang/prometheus"
+	"go.opentelemetry.io/otel"
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/config"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain"
@@ -18,6 +21,7 @@ import (
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain/service"
 	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
 	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc"
+	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware/grpctracing"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
@@ -33,73 +37,60 @@ import (
 // the gRPC server is ready to handle requests
 var isReady atomic.Value
 
-func ServeGRPC(ctx context.Context, port string, _ *container.Brokers, pgPool *pgxpool.Pool, redisClient *redis.Client) error {
+func ServeGRPC(ctx context.Context, port string, app *AppContainer, reg *prometheus.Registry) error {
 	log := logger.Log
 
-	// When you have a configured prometheus registry and OTEL trace provider,
-	// pass in as param 3 & 4
+	// Initialize OpenTelemetry
+	err := grpctracing.InitOTELToCollector(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to configure OpenTelemetry")
+	}
+	tp := otel.GetTracerProvider()
 
-	// configure prometheus registry
-	registry, err := setupPrometheusRegistry(ctx)
+	// Bootstrap gRPC server
+	server, listener, err := grpc.BootstrapServer(port, log, reg, tp)
 	if err != nil {
-		return errors.Wrap(err, "failed to configure prometheus registry")
-	}
-	tp, err := otelTraceProvider(ctx)
-	if err != nil {
-		return errors.Wrap(err, "failed to configure jaeger trace provider")
-	}
-	server, listener, err := grpc.BootstrapServer(port, logger.Log, registry, tp)
-	if err != nil {
-		return errors.Wrap(err, "failed to configure grpc server")
+		return errors.Wrap(err, "failed to configure gRPC server")
 	}
 
-	// Replace with your actual generated registration method
-	// generated.RegisterDummyServer(server, implementation)
-	// client := generated.NewCustomerClient(brokers.Customer)
+	// Register services
+	upb.RegisterAuthServer(server, app.AuthService)
 
-	// customerService and any implementation is a dependency that is injected to dest and delete
-	customerService := domain.NewCustomerService(pgPool, redisClient)
+	// Add other registrations (e.g., FoodLog, Booking, Gallery) as needed
 
-	// implement brokers
-
-	authRepo := repository.NewAuthService(pgPool, redisClient)
-	authService := service.NewAuthService(authRepo)
-
-	cpb.RegisterCustomerServer(server, customerService)
-	upb.RegisterAuthServer(server, authService)
-
-	// Enable reflection to be able to use grpcui or insomnia without
-	// having to manually maintain .proto files
-
+	// Enable reflection for debugging
 	reflection.Register(server)
 
+	// Graceful shutdown
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		for range c {
-			log.Warn("shutting down grpc server")
+			log.Warn("shutting down gRPC server")
 			server.GracefulStop()
 			<-ctx.Done()
 		}
 	}()
 
-	isReady.Store(true)
+	// Start serving
+	log.Info("gRPC server starting", zap.String("port", port))
+	if err = server.Serve(listener); err != nil {
+		return errors.Wrap(err, "gRPC server failed to serve")
+	}
 
-	log.Info("running grpc server", zap.String("port", port))
-	return server.Serve(listener)
+	isReady.Store(true)
+	log.Info("running gRPC server", zap.String("port", port))
+	return nil
 }
 
 // ServeHTTP creates a simple server to serve Prometheus metrics for
 // the collector, and (not included) healthcheck endpoints for K8S to
 // query readiness. By default, these should serve on "/healthz" and "/readyz"
-func ServeHTTP(port string) error {
+func ServeHTTP(port string, reg *prometheus.Registry) error {
 	log := logger.Log
 	log.Info("running http server", zap.String("port", port))
 
-	log.Info("running http server", zap.String("port", port))
-
 	cfg, err := config.InitConfig()
-
 	if err != nil {
 		log.Error("failed to initialize config", zap.Error(err))
 		return err
@@ -120,7 +111,9 @@ func ServeHTTP(port string) error {
 		// Respond with appropriate status code
 		w.WriteHeader(http.StatusOK)
 	})
-	server.HandleFunc("/metrics", promhttp.Handler().ServeHTTP)
+
+	//server.HandleFunc("/metrics", promhttp.Handler().ServeHTTP) // This should use the correct registry.
+	server.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{EnableOpenMetrics: true}))
 
 	listener := &http.Server{
 		Addr:              fmt.Sprintf(":%s", port),

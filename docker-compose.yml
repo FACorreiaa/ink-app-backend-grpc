@@ -144,5 +144,101 @@ services:
 #    ports:
 #      - 6969:6969
 
+#  otel-collector:
+#    image: otel/opentelemetry-collector:latest
+#    container_name: otel-collector
+#    volumes:
+#      - ./config/docker/otel-collector.yaml:/etc/otel-collector.yaml
+#    command: [ "--config", "/etc/otel-collector.yaml" ]
+#    networks:
+#      - ink-me
+#
+#  tempo:
+#    image: grafana/tempo:latest
+#    container_name: tempo
+#    ports:
+#      - "3200:3200"
+#      - "4317:4317"
+#      - "4318:4318"
+#    volumes:
+#      - ./config/docker/tempo.yml:/etc/tempo/tempo.yml
+#      - ./tempo-data:/var/tempo
+#    command:
+#      - '-config.file=/etc/tempo/tempo.yml'
+#    networks:
+#      - ink-me
+#
+#
+#  prometheus:
+#    image: prom/prometheus:latest
+#    container_name: prometheus
+#    command:
+#      - --config.file=/etc/prometheus/prometheus.yml
+#      - --web.enable-remote-write-receiver
+#      - --enable-feature=exemplar-storage
+#      - --enable-feature=native-histograms
+#    volumes:
+#      - ./config/docker/prometheus.yml:/etc/prometheus/prometheus.yml
+#    ports:
+#      - "9090:9090"
+#    networks:
+#      - ink-me
+#
+#  grafana:
+#    image: grafana/grafana-oss:latest
+#    container_name: grafana
+#    ports:
+#      - "3000:3000"
+#    volumes:
+#      - ./config/docker/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+#      - ./config/dashboards/:/var/lib/grafana/dashboards
+#
+#    environment:
+#      - GF_AUTH_ANONYMOUS_ENABLED=true
+#      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+#      - GF_AUTH_DISABLE_LOGIN_FORM=true
+#      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor
+#    networks:
+#      - ink-me
+
+#  jaeger:
+#    image: jaegertracing/all-in-one:latest
+#    container_name: jaeger
+#    ports:
+#      - "16686:16686"      # Jaeger UI (open in your browser)
+#      - "6831:6831/udp"    # Jaeger Agent (thrift UDP)
+#      - "14250:14250"  # OTLP gRPC receiver
+#    networks:
+#      - ink-me
+
+#  loki:
+#    container_name: loki
+#    image: grafana/loki:main
+#    ports:
+#      - "3100:3100"
+#    volumes:
+#      - ./config/docker/loki-config.yaml:/etc/loki/local-config.yaml
+#    command: -config.file=/etc/loki/local-config.yaml
+#    networks:
+#      - ink-me
+#
+#  promtail:
+#    container_name: promtail
+#    image: grafana/promtail:latest
+#    volumes:
+#      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+#      - ./config/docker/promtail-config.yaml:/etc/promtail/promtail.yaml
+#    command: -config.file=/etc/promtail/promtail.yaml
+#    networks:
+#      - ink-me
+
+#  k6-tracing:
+#    image: ghcr.io/grafana/xk6-client-tracing:v0.0.5
+#    environment:
+#      - ENDPOINT=otel-collector:4317
+#    restart: always
+#    depends_on:
+#      - otel-collector
+
 networks:
   ink-me:

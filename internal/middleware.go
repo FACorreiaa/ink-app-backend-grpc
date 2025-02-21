@@ -1,10 +1,11 @@
 package internal
 
 import (
-	"github.com/FACorreiaa/ink-app-backend-grpc/config"
 	"github.com/FACorreiaa/ink-app-backend-protos/container"
 	"github.com/FACorreiaa/ink-app-backend-protos/modules/customer"
 	"github.com/FACorreiaa/ink-app-backend-protos/modules/user"
+
+	"github.com/FACorreiaa/ink-app-backend-grpc/config"
 
 	"github.com/FACorreiaa/ink-app-backend-protos/utils"
 	"go.uber.org/zap"
@@ -19,6 +20,7 @@ func ConfigureUpstreamClients(log *zap.Logger, transport *utils.TransportUtils) 
 
 		return nil
 	}
+
 	cfg, err := config.InitConfig()
 	if err != nil {
 		log.Error("failed to initialize config")

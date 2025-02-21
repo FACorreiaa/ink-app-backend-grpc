@@ -1,11 +1,18 @@
 package config
 
 import (
+	"bytes"
+	_ "embed"
+	"fmt"
 	"time"
 
-	"github.com/FACorreiaa/ink-app-backend-protos/modules/customer"
+	_ "github.com/joho/godotenv"
 	"github.com/spf13/viper"
+	_ "go.uber.org/zap"
 )
+
+//go:embed config.yml
+var embeddedConfig []byte
 
 type Config struct {
 	Mode     string `mapstructure:"mode"`
@@ -33,6 +40,7 @@ type Config struct {
 	Repositories struct {
 		Postgres struct {
 			Host              string `mapstructure:"host"`
+			Password          string `mapstructure:"password"`
 			Port              string `mapstructure:"port"`
 			Username          string `mapstructure:"username"`
 			DB                string `mapstructure:"db"`
@@ -40,34 +48,58 @@ type Config struct {
 			MAXCONWAITINGTIME int    `mapstructure:"MAXCONWAITINGTIME"`
 		}
 		Redis struct {
-			Host string `mapstructure:"host"`
-			Pass string `mapstructure:"pass"`
-			DB   int    `mapstructure:"db"`
+			Host string        `mapstructure:"host"`
+			Port string        `mapstructure:"port"`
+			Pass string        `mapstructure:"pass"`
+			DB   int           `mapstructure:"db"`
+			TTL  time.Duration `mapstructure:"ttl"`
 		}
 	}
 	Server struct {
-		HTTPPort       string        `mapstructure:"HTTPPort"`
-		GrpcPort       string        `mapstructure:"GRPCPort"`
-		Timeout        time.Duration `mapstructure:"HTTPTimeout"`
-		CustomerBroker *customer.Broker
+		HTTPPort string        `mapstructure:"HTTPPort"`
+		GrpcPort string        `mapstructure:"GRPCPort"`
+		Timeout  time.Duration `mapstructure:"HTTPTimeout"`
 	} `mapstructure:"server"`
 	UpstreamServices struct {
-		Customer string `mapstructure:"customer"`
-		Auth     string `mapstructure:"auth"`
+		Customer    string `mapstructure:"customer"`
+		Auth        string `mapstructure:"auth"`
+		Calculator  string `mapstructure:"calculator"`
+		Activity    string `mapstructure:"activity"`
+		Workout     string `mapstructure:"workout"`
+		Measurement string `mapstructure:"measurement"`
+		Ingredients string `mapstructure:"ingredients"`
+		Meals       string `mapstructure:"meals"`
 	} `mapstructure:"upstreamServices"`
 }
 
 func InitConfig() (Config, error) {
 	var config Config
 	v := viper.New()
-	v.AddConfigPath("config")
-	v.SetConfigName("config")
 
-	if err := v.ReadInConfig(); err != nil {
-		return config, err
+	// Add file-based config paths
+	v.AddConfigPath(".")
+	v.AddConfigPath("config")
+	v.AddConfigPath("/app/config")
+	v.AddConfigPath("/usr/local/bin")
+	v.AddConfigPath("/usr/local/bin/inkme")
+
+	v.SetConfigName("config")
+	v.SetConfigType("yaml")
+
+	// Try to load file-based config
+	err := v.ReadInConfig()
+	if err != nil {
+		fmt.Printf("Warning: Failed to find file-based config: %s. Falling back to embedded config.\n", err)
+
+		if err = v.ReadConfig(bytes.NewReader(embeddedConfig)); err != nil {
+			return Config{}, fmt.Errorf("failed to read embedded config: %s", err)
+		}
 	}
-	if err := v.Unmarshal(&config); err != nil {
-		return config, err
+
+	// Unmarshal the config into the Config struct
+	if err = v.Unmarshal(&config); err != nil {
+		return Config{}, fmt.Errorf("failed to unmarshal config: %s", err)
 	}
+	fmt.Println("Successfully loaded app configs...")
 	return config, nil
 }

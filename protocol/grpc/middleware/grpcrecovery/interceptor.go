@@ -1,12 +1,13 @@
 package grpcrecovery
 
 import (
-	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/FACorreiaa/fitme-grpc/protocol/grpc/middleware"
 )
 
 func RegisterMetrics(registry *prometheus.Registry) prometheus.Counter {
