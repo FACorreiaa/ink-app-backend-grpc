@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/FACorreiaa/fitme-grpc/protocol/grpc/middleware"
+	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware"
 )
 
 func Interceptors(instance *zap.Logger) (middleware.ClientInterceptor, middleware.ServerInterceptor) {

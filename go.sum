@@ -1,11 +1,13 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/FACorreiaa/fitme-grpc v0.0.0-20250221100952-55e326bfeb98 h1:GIm9i35IIgRx1NzRNBiKzqNaqqGCsi7x/LWTenfUyGg=
-github.com/FACorreiaa/fitme-grpc v0.0.0-20250221100952-55e326bfeb98/go.mod h1:uFv+WvkCX3rTEtDaDL4xrDi6OvBeBNsz9KaPb0KT68Y=
-github.com/FACorreiaa/fitme-protos v0.0.0-20250218122301-58600ee7869e h1:dspYk8C+slEMQ1qySvcW6iUTgzRySJ1vWy3lO9jySqk=
-github.com/FACorreiaa/fitme-protos v0.0.0-20250218122301-58600ee7869e/go.mod h1:QeVc1UIR5QCmxHIzTkQfZInX/unPrDxEMnykfVgafBo=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20240611150132-88ec9e0d3fcd h1:eQkDFt9wT16sw35+nvJ1qmz9MVuH5ljlj+ehKwaMYGM=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20240611150132-88ec9e0d3fcd/go.mod h1:cQbi1r73uXxvuXFsAG5LJcLA66VE65vfLgwLcKNRBkQ=
+github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250221111350-3b23510a68f7 h1:JApP1fs9uGn8T7qAr/1l+2EoJMmFB+XoSrurdJMrLPs=
+github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250221111350-3b23510a68f7/go.mod h1:IuSWQH/aDIJMbNd61TMRdyVf2k/UY/rYVN4vOlbwiCk=
+github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250221153342-19b0ef7337e2 h1:Q33EdJcwwT1V2CTdVTVllAaZTFyicPLZI1MWIPDImA4=
+github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250221153342-19b0ef7337e2/go.mod h1:MndZ6kXNIi0f/NeQ8Xmo734ExJFNhVXQJoW+6rfm9gc=
+github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250221154723-9cca88b75a55 h1:sJcBIP8sujl8z4WpdDpd+fvm5rN+Guf7Av9/p+2wnq4=
+github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250221154723-9cca88b75a55/go.mod h1:MndZ6kXNIi0f/NeQ8Xmo734ExJFNhVXQJoW+6rfm9gc=
+github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250221163015-ce3256d238dc h1:AEwxBbqvfKgr5O2W+Ncn+E7bt/64Xbzjv5Q+iwv0lns=
+github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250221163015-ce3256d238dc/go.mod h1:MndZ6kXNIi0f/NeQ8Xmo734ExJFNhVXQJoW+6rfm9gc=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
@@ -118,6 +120,8 @@ github.com/prometheus/procfs v0.15.1 h1:YagwOFzUgYfKKHX6Dr+sHT7km/hxC76UB0leargg
 github.com/prometheus/procfs v0.15.1/go.mod h1:fB45yRUv8NstnjriLhBQLuOUt+WW4BsoGhij/e3PBqk=
 github.com/redis/go-redis/v9 v9.7.0 h1:HhLSs+B6O021gwzl+locl0zEDnyNkxMtf/Z3NNBMa9E=
 github.com/redis/go-redis/v9 v9.7.0/go.mod h1:f6zhXITC7JUJIlPEiBOTXxJgPLdZcA93GewI7inzyWw=
+github.com/redis/go-redis/v9 v9.7.1 h1:4LhKRCIduqXqtvCUlaq9c8bdHOkICjDMrr1+Zb3osAc=
+github.com/redis/go-redis/v9 v9.7.1/go.mod h1:f6zhXITC7JUJIlPEiBOTXxJgPLdZcA93GewI7inzyWw=
 github.com/rogpeppe/go-internal v1.13.1 h1:KvO1DLK/DRN07sQ1LQKScxyZJuNnedQ5/wKSR38lUII=
 github.com/rogpeppe/go-internal v1.13.1/go.mod h1:uMEvuHeurkdAXX61udpOXGD/AzZDWNMNyH2VO9fmH0o=
 github.com/sagikazarmark/locafero v0.7.0 h1:5MqpDsTGNDhY8sGp0Aowyf0qKsPrhewaLSsFaodPcyo=
@@ -159,8 +163,6 @@ go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.34.0 h1:OeNbIYk/2C15ckl7glB
 go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.34.0/go.mod h1:7Bept48yIeqxP2OZ9/AqIpYS94h2or0aB4FypJTc8ZM=
 go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.34.0 h1:tgJ0uaNS4c98WRNUEx5U3aDlrDOI5Rs+1Vifcw4DJ8U=
 go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.34.0/go.mod h1:U7HYyW0zt/a9x5J1Kjs+r1f/d4ZHnYFclhYY2+YbeoE=
-go.opentelemetry.io/otel/exporters/prometheus v0.56.0 h1:GnCIi0QyG0yy2MrJLzVrIM7laaJstj//flf1zEJCG+E=
-go.opentelemetry.io/otel/exporters/prometheus v0.56.0/go.mod h1:JQcVZtbIIPM+7SWBB+T6FK+xunlyidwLp++fN0sUaOk=
 go.opentelemetry.io/otel/metric v1.34.0 h1:+eTR3U0MyfWjRDhmFMxe2SsW64QrZ84AOhvqS7Y+PoQ=
 go.opentelemetry.io/otel/metric v1.34.0/go.mod h1:CEDrp0fy2D0MvkXE+dPV7cMi8tWZwX3dmaIhwPOaqHE=
 go.opentelemetry.io/otel/sdk v1.34.0 h1:95zS4k/2GOy069d321O8jWgYsW3MzVV+KuSPKp7Wr1A=

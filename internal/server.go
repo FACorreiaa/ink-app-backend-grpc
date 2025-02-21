@@ -8,25 +8,17 @@ import (
 	"os/signal"
 	"sync/atomic"
 
-	"github.com/FACorreiaa/ink-app-backend-protos/container"
-	cpb "github.com/FACorreiaa/ink-app-backend-protos/modules/customer/generated"
 	upb "github.com/FACorreiaa/ink-app-backend-protos/modules/user/generated"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/auth"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel"
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/config"
-	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain"
-	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain/repository"
-	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain/service"
 	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
 	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc"
 	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware/grpctracing"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/reflection"
 )

@@ -3,7 +3,7 @@ package grpcspan
 import (
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 
-	"github.com/FACorreiaa/fitme-grpc/protocol/grpc/middleware"
+	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware"
 )
 
 // Interceptors wraps OpenTelemetry gRPC interceptors.

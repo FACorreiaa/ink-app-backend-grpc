@@ -13,7 +13,6 @@ import (
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/config"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal"
-	"github.com/FACorreiaa/ink-app-backend-grpc/internal/metrics"
 	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
 )
 
@@ -62,6 +61,36 @@ func run() (*pgxpool.Pool, *redis.Client, error) {
 	return pool, redisClient, nil
 }
 
+func startServer(ctx context.Context, cfg *config.Config, container *internal.AppContainer, reg *prometheus.Registry) error {
+	errChan := make(chan error, 2)
+
+	// Start gRPC server
+	go func() {
+		if err := internal.ServeGRPC(ctx, cfg.Server.GrpcPort, container, reg); err != nil {
+			logger.Log.Error("gRPC server error", zap.Error(err))
+			errChan <- err
+		}
+	}()
+	logger.Log.Info("Serving gRPC", zap.String("port", cfg.Server.GrpcPort))
+
+	// Start HTTP server
+	go func() {
+		if err := internal.ServeHTTP(cfg.Server.HTTPPort, reg); err != nil {
+			logger.Log.Error("HTTP server error", zap.Error(err))
+			errChan <- err
+		}
+	}()
+
+	logger.Log.Info("Serving HTTP", zap.String("port", cfg.Server.HTTPPort))
+
+	select {
+	case err := <-errChan:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
 func main() {
 	reg := prometheus.NewRegistry()
 	println("Loaded prometheus registry")
@@ -102,19 +131,9 @@ func main() {
 		return
 	}
 
-	appContainer := internal.NewAppContainer(ctx, pool, redisClient, brokers, log)
+	appContainer := internal.NewAppContainer(ctx, pool, redisClient)
 
-	metrics.InitPprof()
-
-	go func() {
-		if err := internal.ServeGRPC(ctx, cfg.Server.GrpcPort, appContainer, nil); err != nil {
-			log.Error("failed to serve grpc", zap.Error(err))
-			return
-		}
-	}()
-
-	if err := internal.ServeHTTP(cfg.Server.HTTPPort, reg); err != nil {
-		log.Error("failed to serve http", zap.Error(err))
-		return
+	if err = startServer(ctx, &cfg, appContainer, reg); err != nil {
+		logger.Log.Error("service error", zap.Error(err))
 	}
 }

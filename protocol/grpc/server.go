@@ -10,8 +10,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	"github.com/FACorreiaa/fitme-grpc/protocol/grpc/middleware"
-
+	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware"
 	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware/grpclog"
 	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware/grpcprometheus"
 	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware/grpcratelimit"

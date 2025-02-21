@@ -12,7 +12,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 
-	"github.com/FACorreiaa/fitme-grpc/logger"
+	"github.com/FACorreiaa/ink-app-backend-grpc/logger"
 )
 
 //func newTracerProvider(endpoint, apiKey, caCertPath string, insecure bool) (*trace.TracerProvider, error) {

@@ -8,7 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/FACorreiaa/fitme-grpc/protocol/grpc/middleware"
+	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware"
 )
 
 func Interceptors(collectors *Collectors) (*middleware.ClientInterceptor, *middleware.ServerInterceptor, error) {

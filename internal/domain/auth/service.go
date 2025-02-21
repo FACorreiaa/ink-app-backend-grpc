@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 
-	pb "github.com/FACorreiaa/fitme-protos/modules/user/generated"
+	upb "github.com/FACorreiaa/ink-app-backend-protos/modules/user/generated"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 
@@ -11,7 +11,7 @@ import (
 )
 
 type ServiceAuth struct {
-	pb.UnimplementedAuthServer
+	upb.UnimplementedAuthServer
 	ctx            context.Context
 	repo           domain.AuthRepository
 	pgpool         *pgxpool.Pool
@@ -26,27 +26,27 @@ func NewService(ctx context.Context, repo domain.AuthRepository,
 	return &ServiceAuth{ctx: ctx, repo: repo, pgpool: db, redis: redis, SessionManager: sessionManager}
 }
 
-func (s *ServiceAuth) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
+func (s *ServiceAuth) Register(ctx context.Context, req *upb.RegisterRequest) (*upb.RegisterResponse, error) {
 	return s.repo.Register(ctx, req)
 }
 
-func (s *ServiceAuth) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+func (s *ServiceAuth) Login(ctx context.Context, req *upb.LoginRequest) (*upb.LoginResponse, error) {
 	return s.repo.Login(ctx, req)
 }
 
-func (s *ServiceAuth) Logout(ctx context.Context, req *pb.NilReq) (*pb.NilRes, error) {
+func (s *ServiceAuth) Logout(ctx context.Context, req *upb.NilReq) (*upb.NilRes, error) {
 	return s.repo.Logout(ctx, req)
 }
 
-func (s *ServiceAuth) ChangePassword(ctx context.Context, req *pb.ChangePasswordRequest) (*pb.ChangePasswordResponse, error) {
+func (s *ServiceAuth) ChangePassword(ctx context.Context, req *upb.ChangePasswordRequest) (*upb.ChangePasswordResponse, error) {
 	return s.repo.ChangePassword(ctx, req)
 }
 
-func (s *ServiceAuth) ChangeEmail(ctx context.Context, req *pb.ChangeEmailRequest) (*pb.ChangeEmailResponse, error) {
+func (s *ServiceAuth) ChangeEmail(ctx context.Context, req *upb.ChangeEmailRequest) (*upb.ChangeEmailResponse, error) {
 	return s.repo.ChangeEmail(ctx, req)
 }
 
-func (s *ServiceAuth) GetAllUsers(ctx context.Context, _ *pb.GetAllUsersRequest) (*pb.GetAllUsersResponse, error) {
+func (s *ServiceAuth) GetAllUsers(ctx context.Context, _ *upb.GetAllUsersRequest) (*upb.GetAllUsersResponse, error) {
 	users, err := s.repo.GetAllUsers(ctx)
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func (s *ServiceAuth) GetAllUsers(ctx context.Context, _ *pb.GetAllUsersRequest)
 	return users, nil
 }
 
-func (s *ServiceAuth) GetUserByID(ctx context.Context, req *pb.GetUserByIDRequest) (*pb.GetUserByIDResponse, error) {
+func (s *ServiceAuth) GetUserByID(ctx context.Context, req *upb.GetUserByIDRequest) (*upb.GetUserByIDResponse, error) {
 	user, err := s.repo.GetUserByID(ctx, req)
 	if err != nil {
 		return nil, err
@@ -62,14 +62,14 @@ func (s *ServiceAuth) GetUserByID(ctx context.Context, req *pb.GetUserByIDReques
 	return user, nil
 }
 
-func (s *ServiceAuth) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
+func (s *ServiceAuth) DeleteUser(ctx context.Context, req *upb.DeleteUserRequest) (*upb.DeleteUserResponse, error) {
 	return s.repo.DeleteUser(ctx, req)
 }
 
-func (s *ServiceAuth) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
+func (s *ServiceAuth) UpdateUser(ctx context.Context, req *upb.UpdateUserRequest) (*upb.UpdateUserResponse, error) {
 	return s.repo.UpdateUser(ctx, req)
 }
 
-func (s *ServiceAuth) InsertUser(ctx context.Context, req *pb.InsertUserRequest) (*pb.InsertUserResponse, error) {
+func (s *ServiceAuth) InsertUser(ctx context.Context, req *upb.InsertUserRequest) (*upb.InsertUserResponse, error) {
 	return s.repo.InsertUser(ctx, req)
 }

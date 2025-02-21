@@ -1,27 +1,59 @@
-create table "user" (
-                      user_id uuid primary key default uuid_generate_v4(),
-                      username citext unique not null,
-                      email citext unique not null,
-                      password_hash text not null,
-                      is_tattoo_artist boolean not null default false,
-                      bio text not null default '',
-                      image text,
-                      created_at timestamptz not null default now(),
-                      updated_at timestamptz
+-- 1. studios: The “tenant” or main account for each studio/artist setup
+CREATE TABLE studios (
+                       id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                       name          VARCHAR(150) NOT NULL,
+                       subdomain     VARCHAR(100) UNIQUE,        -- e.g., "inkbyjohn" => "inkbyjohn.myplatform.com"
+                       created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+                       updated_at    TIMESTAMPTZ
 );
 
-create trigger set_updated_at
-  before update on "user"
-  for each row
-execute procedure set_updated_at();
-
-create table "user_token" (
-                            user_token_id bigserial primary key,
-                            user_id uuid not null references "user" (user_id) on delete cascade,
-                            token text not null,
-                            context text not null,
-                            created_at timestamptz not null default now()
+-- 2. users: Staff members and owners within a studio (e.g. owner = main artist, or multiple staff)
+CREATE TABLE users (
+                     id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                     studio_id     UUID NOT NULL,
+                     email         VARCHAR(255) UNIQUE NOT NULL,
+                     hashed_password TEXT NOT NULL,            -- store hashed password (if not using external OAuth)
+                     role          VARCHAR(50) NOT NULL,       -- e.g. 'OWNER', 'ARTIST', 'ASSISTANT', etc.
+                     display_name  VARCHAR(150),
+                     username VARCHAR(150),
+                     first_name VARCHAR(150),
+                     last_name VARCHAR(150),
+                     created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+                     updated_at    TIMESTAMPTZ,
+                     CONSTRAINT fk_studio_user
+                       FOREIGN KEY (studio_id) REFERENCES studios (id) ON DELETE CASCADE
 );
 
-create index on "user_token" (user_id);
-create unique index on "user_token" (token, context);
+INSERT INTO studios (id, name, subdomain, created_at, updated_at)
+VALUES (
+         'a1b2c3d4-e5f6-47f8-9a1b-2c3d4e5f6071'
+         , -- Random UUID
+         'Ink Odyssey Studio',
+         'inkodyssey', -- Maps to inkodyssey.myplatform.com
+         NOW(),
+         NOW()
+       );
+
+INSERT INTO users (
+  studio_id,
+  email,
+  hashed_password,
+  role,
+  display_name,
+  username,
+  first_name,
+  last_name,
+  created_at,
+  updated_at
+) VALUES (
+           'a1b2c3d4-e5f6-47f8-9a1b-2c3d4e5f6071', -- Matches studio_id above
+           'jane@inkodyssey.com',
+           '$2a$10$5nX5gQz8eK8z5J5q8x5z5e5Qz8eK8z5J5q8x5z5e5Qz8eK8z5J5q8', -- Hash for "password123"
+           'OWNER',
+           'Jane Ink',
+           'janeink',
+           'Jane',
+           'Doe',
+           NOW(),
+           NOW()
+         );

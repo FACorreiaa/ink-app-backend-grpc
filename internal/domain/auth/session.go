@@ -12,7 +12,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/FACorreiaa/fitme-grpc/internal/domain"
+	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain"
 )
 
 type SessionManager struct {

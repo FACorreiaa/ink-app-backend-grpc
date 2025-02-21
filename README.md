@@ -1840,6 +1840,364 @@ autoscaling:
 - Implement predicative scaling
 - Handle burst capacity
 
+# DB SCHEMA
 
-### TODO **market survey** or **initial development roadmap** 🚀
+Below is a **recommended relational database schema** for your **SyncInk Tattoo Artist SaaS**. It is designed with **multi-tenant** capabilities (for studios/artists), robust support for **client management**, scheduling, messaging, and a flexible structure for future expansions (e.g., AI features, payment processing, or multi-artist studios).
 
+---
+
+# 1. Database Schema (PostgreSQL)
+
+Below, each table lists **primary keys**, **foreign keys**, and a short rationale. You can adapt the naming to your style and indexing strategy.
+
+```sql
+-- 1. studios: The “tenant” or main account for each studio/artist setup
+CREATE TABLE studios (
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name          VARCHAR(150) NOT NULL,
+    subdomain     VARCHAR(100) UNIQUE,        -- e.g., "inkbyjohn" => "inkbyjohn.myplatform.com"
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMPTZ
+);
+
+-- 2. users: Staff members and owners within a studio (e.g. owner = main artist, or multiple staff)
+CREATE TABLE users (
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    studio_id     UUID NOT NULL,
+    email         VARCHAR(255) UNIQUE NOT NULL,
+    hashed_password TEXT NOT NULL,            -- store hashed password (if not using external OAuth)
+    role          VARCHAR(50) NOT NULL,       -- e.g. 'OWNER', 'ARTIST', 'ASSISTANT', etc.
+    display_name  VARCHAR(150),
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMPTZ,
+    CONSTRAINT fk_studio_user
+        FOREIGN KEY (studio_id) REFERENCES studios (id) ON DELETE CASCADE
+);
+
+-- 3. clients: End customers of the tattoo studio (i.e. each person wanting tattoos)
+CREATE TABLE clients (
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    studio_id     UUID NOT NULL,
+    -- optionally track the specific artist if you want each client tied to a single artist
+    -- user_id       UUID,
+    -- references users(id) with role = 'ARTIST'
+    full_name     VARCHAR(150) NOT NULL,
+    email         VARCHAR(255),
+    phone         VARCHAR(50),
+    notes         TEXT,                       -- e.g. style preferences, special instructions
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMPTZ,
+    CONSTRAINT fk_studio_client
+        FOREIGN KEY (studio_id) REFERENCES studios (id) ON DELETE CASCADE
+);
+
+-- 4. appointments: Tracks booking info for each client
+CREATE TABLE appointments (
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    studio_id     UUID NOT NULL,
+    client_id     UUID NOT NULL,
+    artist_id     UUID,                       -- references users(id) with role='ARTIST'
+    start_time    TIMESTAMPTZ NOT NULL,
+    end_time      TIMESTAMPTZ NOT NULL,
+    status        VARCHAR(50) NOT NULL,       -- e.g. 'SCHEDULED', 'COMPLETED', 'CANCELED'
+    notes         TEXT,                       -- e.g. deposit, location, design references
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMPTZ,
+    CONSTRAINT fk_studio_appointment
+        FOREIGN KEY (studio_id) REFERENCES studios (id) ON DELETE CASCADE,
+    CONSTRAINT fk_client_appointment
+        FOREIGN KEY (client_id) REFERENCES clients (id) ON DELETE CASCADE,
+    CONSTRAINT fk_artist_appointment
+        FOREIGN KEY (artist_id) REFERENCES users (id)
+);
+
+-- 5. conversations: High-level “threads” for messaging
+-- Could be 1:1 (artist <-> client), or a group thread with multiple staff
+CREATE TABLE conversations (
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    studio_id     UUID NOT NULL,
+    client_id     UUID NOT NULL,
+    -- You can add a unique constraint if you want exactly one conversation per client-artist pair
+    -- or do multi-artist group conversations by linking more than one user
+    subject       VARCHAR(200),
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMPTZ,
+    CONSTRAINT fk_studio_convo
+        FOREIGN KEY (studio_id) REFERENCES studios (id) ON DELETE CASCADE,
+    CONSTRAINT fk_client_convo
+        FOREIGN KEY (client_id) REFERENCES clients (id) ON DELETE CASCADE
+);
+
+-- 6. conversation_participants: which users (artists/staff) are part of a conversation
+CREATE TABLE conversation_participants (
+    conversation_id  UUID NOT NULL,
+    user_id          UUID NOT NULL,
+    PRIMARY KEY (conversation_id, user_id),
+    CONSTRAINT fk_conversation
+        FOREIGN KEY (conversation_id) REFERENCES conversations (id) ON DELETE CASCADE,
+    CONSTRAINT fk_user
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+-- 7. messages: The actual chat messages
+CREATE TABLE messages (
+    id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    conversation_id   UUID NOT NULL,
+    sender_user_id    UUID,                    -- references a user if staff sends it
+    sender_client_id  UUID,                    -- references a client if the client sends it
+    content           TEXT,
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    -- store references to file uploads if needed
+    CONSTRAINT fk_conversation_message
+        FOREIGN KEY (conversation_id) REFERENCES conversations (id) ON DELETE CASCADE,
+    CONSTRAINT fk_sender_user
+        FOREIGN KEY (sender_user_id) REFERENCES users (id),
+    CONSTRAINT fk_sender_client
+        FOREIGN KEY (sender_client_id) REFERENCES clients (id)
+);
+
+-- 8. portfolio: For images / design references / completed work
+CREATE TABLE portfolio_items (
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    studio_id     UUID NOT NULL,
+    artist_id     UUID NOT NULL, -- references users(id) with role='ARTIST'
+    image_url     TEXT NOT NULL,
+    title         VARCHAR(200),
+    description   TEXT,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMPTZ,
+    CONSTRAINT fk_studio_portfolio
+        FOREIGN KEY (studio_id) REFERENCES studios (id) ON DELETE CASCADE,
+    CONSTRAINT fk_artist_portfolio
+        FOREIGN KEY (artist_id) REFERENCES users (id)
+);
+
+-- 9. social_integrations: Optional table to store tokens for Instagram, WhatsApp, etc.
+CREATE TABLE social_integrations (
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    studio_id     UUID NOT NULL,
+    provider      VARCHAR(50) NOT NULL,         -- 'INSTAGRAM', 'WHATSAPP', 'PINTEREST', etc.
+    access_token  TEXT NOT NULL,
+    refresh_token TEXT,
+    expires_at    TIMESTAMPTZ,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMPTZ,
+    CONSTRAINT fk_studio_social
+        FOREIGN KEY (studio_id) REFERENCES studios (id) ON DELETE CASCADE
+);
+```
+
+### **Key Points & Rationale**
+
+1. **`studios`** table:
+  - Acts as the “tenant” entity—each studio or single-artist business.
+  - Could have additional columns like `plan_type` (e.g., Basic, Professional, etc.), subscription expiration, etc.
+
+2. **`users`** table:
+  - Users belong to a studio (`studio_id`).
+  - `role` field to differentiate: `OWNER` (the main account), `ARTIST`, or `ASSISTANT`.
+  - You could store phone, about, or other staff details here.
+
+3. **`clients`** table:
+  - The end customers (people wanting tattoos).
+  - Tied to a `studio_id`, so each tenant’s client data is kept separate.
+
+4. **`appointments`** table:
+  - Tracks booking times, references the `client_id` and optionally an `artist_id`.
+  - Could store deposit info, price, or location fields.
+
+5. **`conversations`** & **`conversation_participants`** & **`messages`**:
+  - A flexible approach so you can have multiple staff and a single client in a conversation or even group chats.
+  - The `messages` table references either a `sender_user_id` or `sender_client_id` to handle who posted the message.
+
+6. **`portfolio_items`**:
+  - Stores the images or references to images for each artist’s portfolio.
+  - Could link to external storage (S3 or GCP bucket) via `image_url`.
+
+7. **`social_integrations`**:
+  - Optional table for storing OAuth tokens or credentials for external providers (Instagram, WhatsApp).
+  - This allows advanced feature expansions like pulling direct messages from Instagram or auto-posting artwork.
+
+---
+
+# 2. ER Diagram (Mermaid)
+
+Below is a **mermaid ER diagram** illustrating these tables and relationships.
+
+```mermaid
+erDiagram
+    STUDIOS ||--o{ USERS : has
+    STUDIOS ||--o{ CLIENTS : has
+    STUDIOS ||--o{ APPOINTMENTS : has
+    STUDIOS ||--o{ CONVERSATIONS : has
+    STUDIOS ||--o{ PORTFOLIO_ITEMS : has
+    STUDIOS ||--o{ SOCIAL_INTEGRATIONS : has
+
+    USERS }|--o{ APPOINTMENTS : can_own
+    USERS }|--o{ PORTFOLIO_ITEMS : creates
+    USERS }|--o{ CONVERSATION_PARTICIPANTS : participates_in
+    CLIENTS }|--o{ APPOINTMENTS : schedules
+    CLIENTS }|--o{ CONVERSATIONS : initiates
+
+    CONVERSATIONS ||--o{ CONVERSATION_PARTICIPANTS : has
+    CONVERSATIONS ||--o{ MESSAGES : contains
+    USERS ||--o{ MESSAGES : sends
+    CLIENTS ||--o{ MESSAGES : sends
+
+    STUDIOS {
+        UUID id PK
+        VARCHAR name
+        VARCHAR subdomain
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    USERS {
+        UUID id PK
+        UUID studio_id FK
+        VARCHAR email
+        TEXT hashed_password
+        VARCHAR role
+        VARCHAR display_name
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    CLIENTS {
+        UUID id PK
+        UUID studio_id FK
+        VARCHAR full_name
+        VARCHAR email
+        VARCHAR phone
+        TEXT notes
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    APPOINTMENTS {
+        UUID id PK
+        UUID studio_id FK
+        UUID client_id FK
+        UUID artist_id FK
+        TIMESTAMPTZ start_time
+        TIMESTAMPTZ end_time
+        VARCHAR status
+        TEXT notes
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    CONVERSATIONS {
+        UUID id PK
+        UUID studio_id FK
+        UUID client_id FK
+        VARCHAR subject
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    CONVERSATION_PARTICIPANTS {
+        UUID conversation_id FK
+        UUID user_id FK
+        PK(conversation_id, user_id)
+    }
+
+    MESSAGES {
+        UUID id PK
+        UUID conversation_id FK
+        UUID sender_user_id
+        UUID sender_client_id
+        TEXT content
+        TIMESTAMPTZ created_at
+    }
+
+    PORTFOLIO_ITEMS {
+        UUID id PK
+        UUID studio_id FK
+        UUID artist_id FK
+        TEXT image_url
+        VARCHAR title
+        TEXT description
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    SOCIAL_INTEGRATIONS {
+        UUID id PK
+        UUID studio_id FK
+        VARCHAR provider
+        TEXT access_token
+        TEXT refresh_token
+        TIMESTAMPTZ expires_at
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+```
+
+---
+
+## 3. How This Schema Supports Your SaaS
+
+1. **Multi-Tenant Isolation**
+   Each `studio` effectively acts as a tenant. You can **enforce** row-based policies or keep each studio’s data siloed by referencing `studio_id` in all relevant tables.
+
+2. **Multiple Staff & Roles**
+   The `users` table can hold different roles—**Owner**, **Artist**, or **Assistant**—and you can easily add columns or references for advanced RBAC (Role-Based Access Control).
+
+3. **Clients & Appointments**
+   Tattoo studios manage all their **clients** in `clients`, schedule them in `appointments`, and link each appointment to an `artist_id`.
+
+4. **Conversations & Messages**
+   Real-time or asynchronous chat is supported. **Group conversations** are possible by adding multiple staff in `conversation_participants`.
+
+5. **Portfolios**
+   Each **portfolio item** references an `artist_id` (for ownership) and a `studio_id` (to ensure multi-tenant scoping). The `image_url` points to external storage (e.g., GCS or S3).
+
+6. **Social Integrations**
+   This table lets you store tokens for Instagram, WhatsApp, etc., enabling you to sync DMs, auto-post artwork, or unify messaging in the future.
+
+---
+
+## 4. Potential Extensions
+
+- **Payment**
+  - A `payments` table referencing `appointments` or a separate `invoices` table if you want to track deposits, transaction IDs, or payment status.
+- **AI & AR Features**
+  - A `design_requests` table where artists can store prompts or references for AI style generation, linking them to a `portfolio_items` once generated.
+- **Analytics**
+  - A `stats_daily` or “event logging” table for metrics like how many appointments booked, how many messages sent, etc.
+
+---
+
+## 5. Implementation Tips
+
+1. **Schema per Studio** (If you truly want separate schemas for each tenant)
+  - You would replicate these tables in each schema. This is more complex to manage but offers ultimate data isolation.
+2. **Row-Level Security**
+  - Alternatively, you can keep everything in one schema with a `studio_id` foreign key and set up [Postgres Row-Level Security (RLS)](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) to ensure each studio only sees its own data.
+3. **Indexes & Performance**
+  - Add indexes on `studio_id`, `client_id`, `artist_id`, etc.
+  - For texting, you might index `conversation_id` on the `messages` table if queries filter on conversation.
+4. **Sharding**
+  - If you scale globally, consider sharding by region or storing `region` in `studios`.
+
+---
+
+## 6. Summary
+
+This schema balances:
+
+- **Tenant isolation** (via `studio_id`).
+- **Flexibility** for large or small studios.
+- **Chat** with a robust conversation model.
+- **Portfolio management** for showcasing artwork.
+- **Social media integration** for future expansions.
+
+The **Mermaid ER diagram** shows how these tables relate to each other, ensuring that each piece of data—appointments, messages, designs—is tied back to the correct studio and user.
+
+**Next Steps:**
+- Decide whether to store all tenants in one schema with row-level security or use separate schemas for each.
+- Integrate with your microservices (Go + gRPC) by creating domain repositories that manage these tables.
+- Add advanced features (payments, AI) as additional tables or integrated columns.
+
+This approach should provide a solid, scalable foundation for your **SyncInk** platform. Good luck with the implementation, and feel free to refine relationships or naming conventions to suit your specific business logic!

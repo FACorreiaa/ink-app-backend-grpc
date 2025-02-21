@@ -2,6 +2,8 @@ version: "3.9"
 
 services:
   postgres:
+
+
     env_file:
       - .env
     container_name: inkme-dev-postgres
@@ -16,7 +18,8 @@ services:
       - "5438:5432"
     restart: on-failure
     volumes:
-      - ./.data/docker-postgres:/var/lib/postgresql/data
+      #- ./.data/docker-postgres:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     networks:
       - ink-me
   redis:
@@ -31,7 +34,8 @@ services:
     expose:
       - "6382"
     volumes:
-      - ./.data/docker-redis:/var/lib/redis/data
+      #- ./.data/docker-redis:/var/lib/redis/data
+      - redis-data:/var/lib/redis/data
     networks:
       - ink-me
 
@@ -240,5 +244,9 @@ services:
 #    depends_on:
 #      - otel-collector
 
+volumes:
+  postgres-data:
+  redis-data:
+    
 networks:
   ink-me:

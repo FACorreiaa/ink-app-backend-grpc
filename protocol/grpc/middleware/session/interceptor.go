@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
-	"github.com/FACorreiaa/fitme-grpc/internal/domain"
+	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain"
 )
 
 // Define your secret key for signing tokens
@@ -24,12 +24,9 @@ func InterceptorSession() grpc.UnaryServerInterceptor {
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
 		unauthenticatedMethods := map[string]bool{
-			"/fitSphere.auth.Auth/Register":        true,
-			"/fitSphere.auth.Auth/Login":           true,
-			"/fitSphere.auth.Auth/GetAllUsers":     true,
-			"calculator.Calculator/GetUsersMacros": true,
-			"CalculatorService/GetUserMacros":      true,
-			"CalculatorService/GetUserMacrosAll":   true,
+			"/inkMe.auth.Auth/Register":    true,
+			"/inkMe.auth.Auth/Login":       true,
+			"/inkMe.auth.Auth/GetAllUsers": true,
 		}
 		if unauthenticatedMethods[info.FullMethod] {
 			return handler(ctx, req)

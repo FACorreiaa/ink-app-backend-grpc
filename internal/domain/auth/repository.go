@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	pb "github.com/FACorreiaa/ink-app-backend-protos/modules/user/generated"
+	upb "github.com/FACorreiaa/ink-app-backend-protos/modules/user/generated"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
@@ -21,7 +21,7 @@ import (
 )
 
 type RepositoryAuth struct {
-	pb.UnimplementedAuthServer
+	upb.UnimplementedAuthServer
 	pgpool         *pgxpool.Pool
 	redis          *redis.Client
 	sessionManager *SessionManager
@@ -32,21 +32,22 @@ func NewRepository(db *pgxpool.Pool, redis *redis.Client, sessionManager *Sessio
 	return &RepositoryAuth{pgpool: db, redis: redis, sessionManager: sessionManager}
 }
 
-func (r *RepositoryAuth) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
+func (r *RepositoryAuth) Register(ctx context.Context, req *upb.RegisterRequest) (*upb.RegisterResponse, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to hash password: %v", err)
 	}
 
-	_, err = r.pgpool.Exec(ctx, `INSERT INTO "users" (username, email, password) VALUES ($1, $2, $3)`, req.Username, req.Email, hashedPassword)
+	_, err = r.pgpool.Exec(ctx, `INSERT INTO "users" (studio_id, username, email, hashed_password, role) VALUES ($1, $2, $3, $4, $5)`,
+		req.StudioId, req.Username, req.Email, hashedPassword, req.Role)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to insert user: %v", err)
 	}
 
-	return &pb.RegisterResponse{Message: "Registration successful"}, nil
+	return &upb.RegisterResponse{Message: "Registration successful"}, nil
 }
 
-func (r *RepositoryAuth) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.TokenResponse, error) {
+func (r *RepositoryAuth) RefreshToken(ctx context.Context, req *upb.RefreshTokenRequest) (*upb.TokenResponse, error) {
 	claims := &domain.Claims{}
 	token, err := jwt.ParseWithClaims(req.RefreshToken, claims, func(token *jwt.Token) (interface{}, error) {
 		return domain.JwtRefreshSecretKey, nil
@@ -61,14 +62,14 @@ func (r *RepositoryAuth) RefreshToken(ctx context.Context, req *pb.RefreshTokenR
 		return nil, status.Errorf(codes.Internal, "failed to generate new tokens: %v", err)
 	}
 
-	return &pb.TokenResponse{
+	return &upb.TokenResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
 }
-func (r *RepositoryAuth) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+func (r *RepositoryAuth) Login(ctx context.Context, req *upb.LoginRequest) (*upb.LoginResponse, error) {
 	var user User
-	err := r.pgpool.QueryRow(ctx, `SELECT id, password, email FROM "users" WHERE username=$1`, req.Username).Scan(
+	err := r.pgpool.QueryRow(ctx, `SELECT id, hashed_password, email FROM "users" WHERE username=$1`, req.Username).Scan(
 		&user.ID, &user.Password, &user.Email)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to query user: %v", err)
@@ -106,10 +107,10 @@ func (r *RepositoryAuth) Login(ctx context.Context, req *pb.LoginRequest) (*pb.L
 	//	return nil, err
 	//}
 
-	return &pb.LoginResponse{Token: tokenString, Message: "Login successful!"}, nil
+	return &upb.LoginResponse{Token: tokenString, Message: "Login successful!"}, nil
 }
 
-func (r *RepositoryAuth) Logout(ctx context.Context, req *pb.NilReq) (*pb.NilRes, error) {
+func (r *RepositoryAuth) Logout(ctx context.Context, req *upb.NilReq) (*upb.NilRes, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, errors.New("unable to retrieve metadata")
@@ -144,12 +145,12 @@ func (r *RepositoryAuth) Logout(ctx context.Context, req *pb.NilReq) (*pb.NilRes
 		return nil, errors.New("delete item")
 	}
 
-	return &pb.NilRes{}, nil
+	return &upb.NilRes{}, nil
 }
 
-func (r *RepositoryAuth) ChangePassword(ctx context.Context, req *pb.ChangePasswordRequest) (*pb.ChangePasswordResponse, error) {
+func (r *RepositoryAuth) ChangePassword(ctx context.Context, req *upb.ChangePasswordRequest) (*upb.ChangePasswordResponse, error) {
 	var passwordHash string
-	err := r.pgpool.QueryRow(ctx, `SELECT password FROM "users" WHERE username=$1`, req.Username).Scan(&passwordHash)
+	err := r.pgpool.QueryRow(ctx, `SELECT hashed_password FROM "users" WHERE username=$1`, req.Username).Scan(&passwordHash)
 	if err != nil {
 		return nil, errors.New("user not found")
 	}
@@ -164,17 +165,17 @@ func (r *RepositoryAuth) ChangePassword(ctx context.Context, req *pb.ChangePassw
 		return nil, err
 	}
 
-	_, err = r.pgpool.Exec(ctx, `UPDATE "users" SET password=$1, updated_at=now() WHERE username=$2`, newHashedPassword, req.Username)
+	_, err = r.pgpool.Exec(ctx, `UPDATE "users" SET hashed_password=$1, updated_at=now() WHERE username=$2`, newHashedPassword, req.Username)
 	if err != nil {
 		return nil, err
 	}
 
-	return &pb.ChangePasswordResponse{Message: "Password changed successfully"}, nil
+	return &upb.ChangePasswordResponse{Message: "Password changed successfully"}, nil
 }
 
-func (r *RepositoryAuth) ChangeEmail(ctx context.Context, req *pb.ChangeEmailRequest) (*pb.ChangeEmailResponse, error) {
+func (r *RepositoryAuth) ChangeEmail(ctx context.Context, req *upb.ChangeEmailRequest) (*upb.ChangeEmailResponse, error) {
 	var passwordHash string
-	err := r.pgpool.QueryRow(ctx, `SELECT password FROM "users" WHERE username=$1`, req.Username).Scan(&passwordHash)
+	err := r.pgpool.QueryRow(ctx, `SELECT hashed_password FROM "users" WHERE username=$1`, req.Username).Scan(&passwordHash)
 	if err != nil {
 		return nil, errors.New("user not found")
 	}
@@ -189,17 +190,17 @@ func (r *RepositoryAuth) ChangeEmail(ctx context.Context, req *pb.ChangeEmailReq
 		return nil, err
 	}
 
-	return &pb.ChangeEmailResponse{Message: "Email changed successfully"}, nil
+	return &upb.ChangeEmailResponse{Message: "Email changed successfully"}, nil
 }
 
-func (r *RepositoryAuth) GetAllUsers(ctx context.Context) (*pb.GetAllUsersResponse, error) {
+func (r *RepositoryAuth) GetAllUsers(ctx context.Context) (*upb.GetAllUsersResponse, error) {
 	rows, err := r.pgpool.Query(ctx, `SELECT id, username, email, role, created_at, updated_at FROM "users"`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var users []*pb.User
+	var users []*upb.User
 	for rows.Next() {
 		select {
 		case <-ctx.Done():
@@ -216,16 +217,16 @@ func (r *RepositoryAuth) GetAllUsers(ctx context.Context) (*pb.GetAllUsersRespon
 			return nil, err
 		}
 
-		var role pb.User_Role
+		var role upb.User_Role
 		switch roleStr {
 		case "ADMIN":
-			role = pb.User_ADMIN
+			role = upb.User_ADMIN
 		case "MODERATOR":
-			role = pb.User_MODERATOR
-		case "COACH":
-			role = pb.User_COACH
+			role = upb.User_MODERATOR
+		case "USER":
+			role = upb.User_USER
 		default:
-			role = pb.User_ROLE_UNSPECIFIED
+			role = upb.User_ROLE_UNSPECIFIED
 		}
 
 		var updatedAtStr string
@@ -233,7 +234,7 @@ func (r *RepositoryAuth) GetAllUsers(ctx context.Context) (*pb.GetAllUsersRespon
 			updatedAtStr = updatedAt.Format(time.RFC3339)
 		}
 
-		users = append(users, &pb.User{
+		users = append(users, &upb.User{
 			Id:        id,
 			Username:  username,
 			Email:     email,
@@ -246,11 +247,11 @@ func (r *RepositoryAuth) GetAllUsers(ctx context.Context) (*pb.GetAllUsersRespon
 		return nil, err
 	}
 
-	return &pb.GetAllUsersResponse{Users: users}, nil
+	return &upb.GetAllUsersResponse{Users: users}, nil
 }
 
-func (r *RepositoryAuth) GetUserByID(ctx context.Context, req *pb.GetUserByIDRequest) (*pb.GetUserByIDResponse, error) {
-	var u pb.User
+func (r *RepositoryAuth) GetUserByID(ctx context.Context, req *upb.GetUserByIDRequest) (*upb.GetUserByIDResponse, error) {
+	var u upb.User
 	var createdAt time.Time
 	var updatedAt *time.Time
 
@@ -272,10 +273,10 @@ func (r *RepositoryAuth) GetUserByID(ctx context.Context, req *pb.GetUserByIDReq
 
 	u.CreatedAt = createdAt.Format(time.RFC3339)
 
-	return &pb.GetUserByIDResponse{User: &u}, nil
+	return &upb.GetUserByIDResponse{User: &u}, nil
 }
 
-func (r *RepositoryAuth) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
+func (r *RepositoryAuth) DeleteUser(ctx context.Context, req *upb.DeleteUserRequest) (*upb.DeleteUserResponse, error) {
 	// Execute the delete query
 	commandTag, err := r.pgpool.Exec(ctx, `DELETE FROM "users" WHERE user = $1`, req.Id)
 	if err != nil {
@@ -287,10 +288,10 @@ func (r *RepositoryAuth) DeleteUser(ctx context.Context, req *pb.DeleteUserReque
 		return nil, errors.New("user not found")
 	}
 
-	return &pb.DeleteUserResponse{Message: "user deleted successfully"}, nil
+	return &upb.DeleteUserResponse{Message: "user deleted successfully"}, nil
 }
 
-func (r *RepositoryAuth) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
+func (r *RepositoryAuth) UpdateUser(ctx context.Context, req *upb.UpdateUserRequest) (*upb.UpdateUserResponse, error) {
 	// Execute the update query
 	commandTag, err := r.pgpool.Exec(ctx, `
 		UPDATE "users"
@@ -306,20 +307,20 @@ func (r *RepositoryAuth) UpdateUser(ctx context.Context, req *pb.UpdateUserReque
 		return nil, errors.New("user not found")
 	}
 
-	return &pb.UpdateUserResponse{Message: "user updated successfully"}, nil
+	return &upb.UpdateUserResponse{Message: "user updated successfully"}, nil
 }
 
 // InsertUser change this later
 
-func (r *RepositoryAuth) InsertUser(ctx context.Context, req *pb.InsertUserRequest) (*pb.InsertUserResponse, error) {
+func (r *RepositoryAuth) InsertUser(ctx context.Context, req *upb.InsertUserRequest) (*upb.InsertUserResponse, error) {
 	// Insert the new user
 	_, err := r.pgpool.Exec(ctx, `
-		INSERT INTO "users" (id, username, email, password, role, created_at, updated_at)
+		INSERT INTO "users" (id, username, email, hashed_password, role, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, NOW(), NOW())`,
 		req.User.Id, req.User.Username, req.User.Email, req.User.PasswordHash, req.User.IsAdmin)
 	if err != nil {
 		return nil, fmt.Errorf("error inserting user: %v", err)
 	}
 
-	return &pb.InsertUserResponse{Message: "user inserted successfully"}, nil
+	return &upb.InsertUserResponse{Message: "user inserted successfully"}, nil
 }
