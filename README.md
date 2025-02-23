@@ -2182,7 +2182,255 @@ erDiagram
   - If you scale globally, consider sharding by region or storing `region` in `studios`.
 
 ---
+Below is a **mermaid** diagram illustrating both the **database schema** and the **gRPC services** for your SyncInk Tattoo Artist Client Management SaaS. The ER diagram portion shows the tables, relationships, and foreign keys as you’ve defined them. Additionally, we’ll represent your core gRPC services on the side, indicating how each service might interact with the data model.
 
+---
+
+## Mermaid Diagram
+
+```mermaid
+%%---------------------------------------------------------------------------------
+%% ER + Services Combined Diagram
+%%---------------------------------------------------------------------------------
+flowchart LR
+    %% =========================
+    %%   Database (ER Diagram)
+    %% =========================
+    subgraph Database Schema
+    direction TB
+
+    %% Studios Table
+    A[studios] ---|PK: id| A1(( ))
+    A -->|1 to many| U
+    A -->|1 to many| C
+    A -->|1 to many| APPT
+    A -->|1 to many| CONVO
+    A -->|1 to many| PORT
+    A -->|1 to many| SI
+
+    %% Users Table
+    U[users] ---|PK: id| U1(( ))
+    U -->|FK: studio_id| A
+    U -->|1 to many| APPT
+    U -->|1 to many| PART
+    U -->|1 to many| MSG2[ messages (sender_user_id) ]
+    U -->|1 to many| PORT
+    style U stroke:#333,stroke-width:2px
+
+    %% Clients Table
+    C[clients] ---|PK: id| C1(( ))
+    C -->|FK: studio_id| A
+    C -->|1 to many| APPT
+    C -->|1 to many| CONVO
+    C -->|1 to many| MSG3[ messages (sender_client_id) ]
+    style C stroke:#333,stroke-width:2px
+
+    %% Appointments Table
+    APPT[appointments] ---|PK: id| APPT1(( ))
+    APPT -->|FK: studio_id| A
+    APPT -->|FK: client_id| C
+    APPT -->|FK: artist_id| U
+    style APPT stroke:#333,stroke-width:2px
+
+    %% Conversations Table
+    CONVO[conversations] ---|PK: id| CONVO1(( ))
+    CONVO -->|FK: studio_id| A
+    CONVO -->|FK: client_id| C
+    CONVO -->|1 to many| M
+    CONVO -->|1 to many| PART
+    style CONVO stroke:#333,stroke-width:2px
+
+    %% conversation_participants
+    PART[conversation_participants]
+    PART -->|FK: conversation_id| CONVO
+    PART -->|FK: user_id| U
+    style PART stroke:#333,stroke-width:2px
+
+    %% messages
+    M[messages] ---|PK: id| M1(( ))
+    M -->|FK: conversation_id| CONVO
+    M -->|FK: sender_user_id| U
+    M -->|FK: sender_client_id| C
+    style M stroke:#333,stroke-width:2px
+
+    %% portfolio_items
+    PORT[portfolio_items] ---|PK: id| PORT1(( ))
+    PORT -->|FK: studio_id| A
+    PORT -->|FK: artist_id| U
+    style PORT stroke:#333,stroke-width:2px
+
+    %% social_integrations
+    SI[social_integrations] ---|PK: id| SI1(( ))
+    SI -->|FK: studio_id| A
+    style SI stroke:#333,stroke-width:2px
+
+    end
+
+    %% =========================
+    %%   gRPC Services
+    %% =========================
+    subgraph gRPC Services
+    direction TB
+
+    SRV1[Auth Service]
+    SRV2[Messaging Service]
+    SRV3[Scheduling Service]
+    SRV4[File Mgmt / Portfolio Service]
+    SRV5[Notification Service]
+    SRV6[Integration Service]
+
+    end
+
+    %% Lines connecting Services to DB Entities
+    SRV1 -.-> A
+    SRV1 -.-> U
+    SRV2 -.-> CONVO
+    SRV2 -.-> M
+    SRV3 -.-> APPT
+    SRV3 -.-> C
+    SRV4 -.-> PORT
+    SRV4 -.-> SI
+    SRV5 -.-> PART
+    SRV5 -.-> ???  -- e.g. ephemeral table for push/email notifications
+    SRV6 -.-> SI
+
+
+    %% Styles for clarity
+    classDef table fill:#fff,stroke:#333,stroke-width:2px
+    classDef service fill:#f9f,stroke:#333,stroke-width:2px
+
+    class A,U,C,APPT,CONVO,PART,M,PORT,SI table
+    class SRV1,SRV2,SRV3,SRV4,SRV5,SRV6 service
+```
+
+### Explanation
+
+1. **Database Schema**
+  - **studios**: Each row is a tenant (a single-artist brand or a multi-artist studio).
+  - **users**: Staff (owner/artist/assistant) belongs to a single `studio_id`.
+  - **clients**: End customers. Linked to `studios`.
+  - **appointments**: Ties clients and optionally an `artist_id` (a user with role=ARTIST) for scheduling.
+  - **conversations**: Chat threads; each references a `client_id` and the `studio_id`.
+  - **conversation_participants**: Many-to-many linking users to a conversation.
+  - **messages**: Actual chat entries; either `sender_user_id` or `sender_client_id`.
+  - **portfolio_items**: Artwork references for an `artist_id` in a given studio.
+  - **social_integrations**: Access tokens for each studio to Instagram, etc.
+
+2. **gRPC Services**
+  - **Auth Service**: Creates & authenticates accounts (JWT), belongs to a `studio_id`.
+  - **Messaging Service**: Manages conversation creation, message posting, retrieving chat history.
+  - **Scheduling Service**: Appointment booking, rescheduling, notifications.
+  - **File Mgmt / Portfolio Service**: Upload & manage images or references in `portfolio_items`, possibly integrated with S3/GCS.
+  - **Notification Service**: Could push real-time events or email/push notifications for new messages, upcoming appointments.
+  - **Integration Service**: Ties into external APIs (Instagram, WhatsApp, Pinterest, etc.)—uses `social_integrations`.
+
+---
+
+## gRPC / Proto Example (Conceptual)
+
+Below is a conceptual outline of what your `.proto` files might look like for each microservice. (This is not exhaustive, just indicative.)
+
+```proto
+// auth_service.proto
+service AuthService {
+  rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse);
+  rpc Login(LoginRequest) returns (LoginResponse);
+  // ...
+}
+
+message RegisterUserRequest {
+  string studio_id = 1;
+  string email = 2;
+  string password = 3;
+  // ...
+}
+message RegisterUserResponse { string message = 1; }
+
+// messaging_service.proto
+service MessagingService {
+  rpc CreateConversation(CreateConversationRequest) returns (CreateConversationResponse);
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+  rpc StreamMessages(StreamMessagesRequest) returns (stream Message);
+  // ...
+}
+
+// scheduling_service.proto
+service SchedulingService {
+  rpc CreateAppointment(CreateAppointmentRequest) returns (CreateAppointmentResponse);
+  rpc ListAppointments(ListAppointmentsRequest) returns (ListAppointmentsResponse);
+  // ...
+}
+
+// portfolio_service.proto
+service PortfolioService {
+  rpc UploadPortfolioItem(UploadItemRequest) returns (UploadItemResponse);
+  rpc ListPortfolioItems(ListPortfolioRequest) returns (ListPortfolioResponse);
+  // ...
+}
+```
+
+These calls would interact with the associated domain logic in the Go code and read/write from the schema above.
+
+---
+
+## Why This Design Works
+
+- **Modular**: Each microservice can focus on a domain—auth, messaging, scheduling, portfolio, etc.
+- **Multi-tenant**: The `studio_id` references keep data scoping clear.
+- **Future expansions**: Add new microservices for AI features or analytics.
+- **Real-time**: With gRPC streaming, you can handle real-time chat or presence events.
+
+---
+
+## Next Steps
+
+1. **Prototyping**: Start with the **Auth** and **User** domain to get multi-tenant user management working.
+2. **Messaging**: Build out conversation & message flows so artists can chat with clients.
+3. **Scheduling**: Add appointments next, hooking into e.g. email or push notifications.
+4. **Deployment**: Containerize each microservice, orchestrate on Kubernetes, implement a gateway for a unified front.
+
+This approach ensures a robust, scalable foundation for your SyncInk Tattoo Artist Client Management platform. You can refine the specifics—table column names, proto message shapes, microservice boundaries—as the project evolves.
+___
+### Services
+
+Below are two **Markdown tables**—one for the database entities, and another for the gRPC services they interact with.
+
+---
+
+## **Database Schema Overview**
+
+| **Table**                | **Description**                              | **Key Relationships**                                                                    |
+|--------------------------|----------------------------------------------|-------------------------------------------------------------------------------------------|
+| **studios**             | Main account for each studio/artist          | Has many users, clients, appointments, etc.                                              |
+| **users**               | Staff members and owners within a studio     | Owns appointments, creates portfolio items                                               |
+| **clients**             | End customers of the studio                  | Schedules appointments, initiates conversations                                          |
+| **appointments**        | Booking information for clients              | Linked to studios, clients, and artists (users)                                          |
+| **conversations**       | Messaging threads for communication          | Has participants, contains messages                                                      |
+| **conversation_participants** | Junction table for conversation participants | Links users to conversations                                                             |
+| **messages**            | Individual chat messages                     | Sent by users or clients, linked to conversations                                        |
+| **portfolio_items**     | Images and designs for artists               | Created by users (artists), linked to studios                                            |
+| **social_integrations** | Tokens for social media integrations         | Linked to studios for external syncing                                                  |
+
+---
+
+## **Services & Their DB Tables**
+
+| **Service**                 | **Interacts With Tables**                                |
+|-----------------------------|-----------------------------------------------------------|
+| **StudioService**           | studios, users, social_integrations                      |
+| **UserService**             | users, conversation_participants                         |
+| **ClientService**           | clients, appointments, conversations                     |
+| **AppointmentService**      | appointments, users, clients                             |
+| **ConversationService**     | conversations, conversation_participants, messages       |
+| **MessageService**          | messages                                                 |
+| **PortfolioService**        | portfolio_items, users                                   |
+| **SocialIntegrationService**| social_integrations                                      |
+
+---
+
+These tables illustrate how your SaaS logically organizes data (first table) and which gRPC services interact with specific entities (second table).
+
+___
 ## 6. Summary
 
 This schema balances:
