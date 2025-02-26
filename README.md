@@ -293,6 +293,38 @@ The platform solves three critical problems for tattoo artists:
 - Regional payment methods
 - Local compliance adaptations
 
+___
+
+# Core features
+
+1. **Messaging & Client Communication System**
+   - This addresses the primary pain point of fragmented communication
+   - Include basic chat functionality to consolidate conversations from Instagram/WhatsApp
+
+2. **Simple Client Management**
+   - Client profiles with basic information
+   - Design/reference image storage
+   - Consultation notes
+
+3. **Basic Scheduling System**
+   - Appointment calendar
+   - Reminder notifications
+   - Simple booking workflow
+
+4. **Essential Web Backoffice**
+   - Artist dashboard with minimal viable features
+   - Configuration options for services and availability
+
+These align with your Phase 1 roadmap (months 1-3) which includes the core backend services, basic web admin interface, and essential features for the iOS app. Starting with these features will:
+
+1. Address the most immediate pain points for tattoo artists
+2. Provide a foundation for your multi-tenant architecture
+3. Allow you to get early user feedback before investing in more complex features
+4. Create a functional MVP you can test with your initial target market
+
+Once you've validated these core features with early users, you can then expand to the Phase 2 features like advanced scheduling, file management, and payment processing.
+
+___
 
 **The Idea:**
 Tattoo artists today manage client inquiries via Instagram or WhatsApp, where important messages can get lost in the noise. Your platform creates a dedicated back‑office where tattoo artists can onboard clients and manage communications—all through a configurable mobile app. In the future, the system will allow clients to work with multiple tattoo artists on one account, support real‑time messaging (text and video), file sharing for design ideas, and even AI-driven features to help both artists and clients generate creative tattoo designs.
