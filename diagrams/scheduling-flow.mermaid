@@ -1,0 +1,33 @@
+sequenceDiagram
+    participant Artist as Tattoo Artist (Backoffice)
+    participant Server as SyncInk Server
+    participant Client as Client (Mobile App)
+    
+    Note over Artist: Sets availability schedule
+    Artist->>Server: SetAvailability(working hours)
+    Server-->>Artist: Confirmation
+    
+    Note over Client: Wants to book appointment
+    Client->>Server: ListAvailableTimeSlots(artist_id, date_range)
+    Server-->>Client: Available time slots
+    
+    Client->>Server: RequestAppointment(artist_id, time_slot, details)
+    Server-->>Client: Booking request confirmation
+    
+    Server->>Artist: Notify of new appointment request
+    
+    Note over Artist: Reviews appointment request
+    Artist->>Server: ApproveAppointmentRequest(request_id)
+    Server-->>Artist: Confirmation
+    
+    Server->>Client: Notify appointment approved
+    
+    alt If Deposit Required
+        Server->>Client: RequestDeposit(appointment_id, amount)
+        Client->>Server: ConfirmDeposit(payment_details)
+        Server-->>Client: Payment confirmation
+    end
+    
+    Note over Server: Before appointment
+    Server->>Client: SendAppointmentReminder(24h before)
+    Server->>Artist: SendAppointmentReminder(start of day)

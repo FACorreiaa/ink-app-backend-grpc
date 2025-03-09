@@ -31,6 +31,7 @@ require (
 )
 
 require (
+	github.com/FACorreiaa/fitme-protos v0.0.0-20250218122301-58600ee7869e // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
