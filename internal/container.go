@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/FACorreiaa/ink-app-backend-protos/container"
+	user "github.com/FACorreiaa/ink-app-backend-protos/modules/auth/generated"
 	customer "github.com/FACorreiaa/ink-app-backend-protos/modules/customer/generated"
-	user "github.com/FACorreiaa/ink-app-backend-protos/modules/user/generated"
 	"github.com/FACorreiaa/ink-app-backend-protos/utils"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"

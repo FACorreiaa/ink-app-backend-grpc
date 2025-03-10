@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	upb "github.com/FACorreiaa/ink-app-backend-protos/modules/user/generated"
+	upb "github.com/FACorreiaa/ink-app-backend-protos/modules/auth/generated"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"

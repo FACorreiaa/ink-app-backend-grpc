@@ -3,7 +3,7 @@ package domain
 import (
 	"context"
 
-	upb "github.com/FACorreiaa/ink-app-backend-protos/modules/user/generated"
+	upb "github.com/FACorreiaa/ink-app-backend-protos/modules/auth/generated"
 )
 
 type AuthRepository interface {

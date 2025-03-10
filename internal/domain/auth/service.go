@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 
-	upb "github.com/FACorreiaa/ink-app-backend-protos/modules/user/generated"
+	upb "github.com/FACorreiaa/ink-app-backend-protos/modules/auth/generated"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 

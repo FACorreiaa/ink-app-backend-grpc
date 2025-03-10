@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"sync/atomic"
 
-	upb "github.com/FACorreiaa/ink-app-backend-protos/modules/user/generated"
+	upb "github.com/FACorreiaa/ink-app-backend-protos/modules/auth/generated"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel"
 
