@@ -1,13 +1,5 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/FACorreiaa/fitme-protos v0.0.0-20250218122301-58600ee7869e h1:dspYk8C+slEMQ1qySvcW6iUTgzRySJ1vWy3lO9jySqk=
-github.com/FACorreiaa/fitme-protos v0.0.0-20250218122301-58600ee7869e/go.mod h1:QeVc1UIR5QCmxHIzTkQfZInX/unPrDxEMnykfVgafBo=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250221111350-3b23510a68f7 h1:JApP1fs9uGn8T7qAr/1l+2EoJMmFB+XoSrurdJMrLPs=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250221111350-3b23510a68f7/go.mod h1:IuSWQH/aDIJMbNd61TMRdyVf2k/UY/rYVN4vOlbwiCk=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250221153342-19b0ef7337e2 h1:Q33EdJcwwT1V2CTdVTVllAaZTFyicPLZI1MWIPDImA4=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250221153342-19b0ef7337e2/go.mod h1:MndZ6kXNIi0f/NeQ8Xmo734ExJFNhVXQJoW+6rfm9gc=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250221154723-9cca88b75a55 h1:sJcBIP8sujl8z4WpdDpd+fvm5rN+Guf7Av9/p+2wnq4=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250221154723-9cca88b75a55/go.mod h1:MndZ6kXNIi0f/NeQ8Xmo734ExJFNhVXQJoW+6rfm9gc=
 github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250221163015-ce3256d238dc h1:AEwxBbqvfKgr5O2W+Ncn+E7bt/64Xbzjv5Q+iwv0lns=
 github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250221163015-ce3256d238dc/go.mod h1:MndZ6kXNIi0f/NeQ8Xmo734ExJFNhVXQJoW+6rfm9gc=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
@@ -111,8 +103,8 @@ github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINE
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRIccs7FGNTlIRMkT8wgtp5eCXdBlqhYGL6U=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/prometheus/client_golang v1.21.0 h1:DIsaGmiaBkSangBgMtWdNfxbMNdku5IK6iNhrEqWvdA=
-github.com/prometheus/client_golang v1.21.0/go.mod h1:U9NM32ykUErtVBxdvD3zfi+EuFkkaBvMb09mIfe0Zgg=
+github.com/prometheus/client_golang v1.21.1 h1:DOvXXTqVzvkIewV/CDPFdejpMCGeMcbGCQ8YOmu+Ibk=
+github.com/prometheus/client_golang v1.21.1/go.mod h1:U9NM32ykUErtVBxdvD3zfi+EuFkkaBvMb09mIfe0Zgg=
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
 github.com/prometheus/client_model v0.6.1 h1:ZKSh/rekM+n3CeS952MLRAdFwIKqeY8b62p8ais2e9E=
 github.com/prometheus/client_model v0.6.1/go.mod h1:OrxVMOVHjw3lKMa8+x6HeMGkHMQyHDk9E3jmP2AmGiY=
@@ -120,8 +112,6 @@ github.com/prometheus/common v0.62.0 h1:xasJaQlnWAeyHdUBeGjXmutelfJHWMRr+Fg4QszZ
 github.com/prometheus/common v0.62.0/go.mod h1:vyBcEuLSvWos9B1+CyL7JZ2up+uFzXhkqml0W5zIY1I=
 github.com/prometheus/procfs v0.15.1 h1:YagwOFzUgYfKKHX6Dr+sHT7km/hxC76UB0learggepc=
 github.com/prometheus/procfs v0.15.1/go.mod h1:fB45yRUv8NstnjriLhBQLuOUt+WW4BsoGhij/e3PBqk=
-github.com/redis/go-redis/v9 v9.7.0 h1:HhLSs+B6O021gwzl+locl0zEDnyNkxMtf/Z3NNBMa9E=
-github.com/redis/go-redis/v9 v9.7.0/go.mod h1:f6zhXITC7JUJIlPEiBOTXxJgPLdZcA93GewI7inzyWw=
 github.com/redis/go-redis/v9 v9.7.1 h1:4LhKRCIduqXqtvCUlaq9c8bdHOkICjDMrr1+Zb3osAc=
 github.com/redis/go-redis/v9 v9.7.1/go.mod h1:f6zhXITC7JUJIlPEiBOTXxJgPLdZcA93GewI7inzyWw=
 github.com/rogpeppe/go-internal v1.13.1 h1:KvO1DLK/DRN07sQ1LQKScxyZJuNnedQ5/wKSR38lUII=
