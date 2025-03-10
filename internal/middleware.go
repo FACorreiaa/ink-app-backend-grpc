@@ -2,13 +2,11 @@ package internal
 
 import (
 	"github.com/FACorreiaa/ink-app-backend-protos/container"
-	"github.com/FACorreiaa/ink-app-backend-protos/modules/customer"
-	"github.com/FACorreiaa/ink-app-backend-protos/modules/user"
-
-	"github.com/FACorreiaa/ink-app-backend-grpc/config"
 
 	"github.com/FACorreiaa/ink-app-backend-protos/utils"
 	"go.uber.org/zap"
+
+	"github.com/FACorreiaa/ink-app-backend-grpc/config"
 )
 
 // ConfigureUpstreamClients maintains the broker container so we have a struct that we can pass
@@ -21,7 +19,7 @@ func ConfigureUpstreamClients(log *zap.Logger, transport *utils.TransportUtils) 
 		return nil
 	}
 
-	cfg, err := config.InitConfig()
+	_, err := config.InitConfig()
 	if err != nil {
 		log.Error("failed to initialize config")
 		return nil
@@ -29,18 +27,18 @@ func ConfigureUpstreamClients(log *zap.Logger, transport *utils.TransportUtils) 
 	// If you have a lot of upstream services, you'll probably want to use an
 	// itt here instead, but for the example we've only got the one.
 
-	customerBroker, err := customer.NewBroker(cfg.UpstreamServices.Customer)
-	if err != nil {
-		log.Error("failed to create customer service broker", zap.Error(err))
-		return nil
-	}
-
-	authBroker, err := user.NewBroker(cfg.UpstreamServices.Customer)
-	if err != nil {
-		log.Error("failed to create auth service broker", zap.Error(err))
-		return nil
-	}
-	brokers.Customer = customerBroker
-	brokers.Auth = authBroker
+	//customerBroker, err := customer.NewBroker(cfg.UpstreamServices.Customer)
+	//if err != nil {
+	//	log.Error("failed to create customer service broker", zap.Error(err))
+	//	return nil
+	//}
+	//
+	//authBroker, err := user.NewBroker(cfg.UpstreamServices.Customer)
+	//if err != nil {
+	//	log.Error("failed to create auth service broker", zap.Error(err))
+	//	return nil
+	//}
+	//brokers.Customer = customerBroker
+	//brokers.Auth = authBroker
 	return brokers
 }
