@@ -4,18 +4,19 @@ import (
 	"context"
 
 	"github.com/FACorreiaa/ink-app-backend-protos/container"
-	user "github.com/FACorreiaa/ink-app-backend-protos/modules/auth/generated"
-	customer "github.com/FACorreiaa/ink-app-backend-protos/modules/customer/generated"
+	u "github.com/FACorreiaa/ink-app-backend-protos/modules/auth/generated"
+	c "github.com/FACorreiaa/ink-app-backend-protos/modules/customer/generated"
 	"github.com/FACorreiaa/ink-app-backend-protos/utils"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain/auth"
+	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain/customer"
 )
 
 type Brokers struct {
-	Customer       customer.CustomerClient
-	Auth           user.AuthClient
+	Customer       c.CustomerServiceClient
+	Auth           u.AuthClient
 	TransportUtils *utils.TransportUtils
 }
 
@@ -42,8 +43,9 @@ type UserContainer struct {
 }
 
 type AppContainer struct {
-	Brokers     *container.Brokers
-	AuthService *auth.ServiceAuth
+	Brokers         *container.Brokers
+	AuthService     *auth.ServiceAuth
+	CustomerService *customer.ServiceCustomer
 }
 
 //func NewAppContainer(
@@ -78,7 +80,11 @@ func NewAppContainer(ctx context.Context, pgPool *pgxpool.Pool, redisClient *red
 	sessionManager := auth.NewSessionManager(pgPool, redisClient)
 	authRepo := auth.NewRepository(pgPool, redisClient, sessionManager)
 	authService := auth.NewService(ctx, authRepo, pgPool, redisClient, sessionManager)
+
+	customerRepo := customer.NewRepository(pgPool, redisClient)
+	customerService := customer.NewService(ctx, customerRepo, pgPool, redisClient)
 	return &AppContainer{
-		AuthService: authService,
+		AuthService:     authService,
+		CustomerService: customerService,
 	}
 }

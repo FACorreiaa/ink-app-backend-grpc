@@ -1,6 +1,9 @@
 package domain
 
 import (
+	"context"
+
+	upc "github.com/FACorreiaa/ink-app-backend-protos/modules/customer/generated"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -51,3 +54,16 @@ var JwtRefreshSecretKey = []byte("your-refresh-key")
 // Calculator service
 
 // Meal service
+
+type CustomerService interface {
+	CreateCustomer(ctx context.Context, req *upc.CreateCustomerRequest) (*upc.CreateCustomerResponse, error)
+	GetCustomer(ctx context.Context, req *upc.GetCustomerRequest) (*upc.GetCustomerResponse, error)
+	ListCustomers(ctx context.Context, req *upc.ListCustomersRequest) (*upc.ListCustomersResponse, error)
+	UpdateCustomer(ctx context.Context, req *upc.UpdateCustomerRequest) (*upc.UpdateCustomerResponse, error)
+
+	DeleteCustomer(ctx context.Context, req *upc.DeleteCustomerRequest) (*upc.DeleteCustomerResponse, error)
+	ArchiveCustomer(ctx context.Context, req *upc.ArchiveCustomerRequest) (*upc.ArchiveCustomerResponse, error)
+	GetCustomerHistory(ctx context.Context, req *upc.GetCustomerHistoryRequest) (*upc.GetCustomerHistoryResponse, error)
+	AddCustomerNote(ctx context.Context, req *upc.AddCustomerNoteRequest) (*upc.AddCustomerNoteResponse, error)
+	SearchCustomers(ctx context.Context, req *upc.SearchCustomersRequest) (*upc.SearchCustomersResponse, error)
+}
