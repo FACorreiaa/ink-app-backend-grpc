@@ -2,10 +2,16 @@ package customer
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/redis/go-redis/v9"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type PostgresCustomerRepository struct {
@@ -19,7 +25,76 @@ func NewRepository(db *pgxpool.Pool, redis *redis.Client) *PostgresCustomerRepos
 }
 
 func (r *PostgresCustomerRepository) Create(ctx context.Context, customer *domain.Customer) (string, error) {
-	return "", nil
+	tx, err := r.pgpool.Begin(ctx)
+	if err != nil {
+		return "", status.Error(codes.Internal, "could not start transaction")
+	}
+	defer tx.Rollback(ctx)
+
+	if customer == nil {
+		return "", status.Error(codes.InvalidArgument, "customer is required")
+	}
+
+	// Format full name if not provided
+	fullName := customer.FullName
+	if fullName == "" && (customer.FirstName != "" || customer.LastName != "") {
+		fullName = strings.TrimSpace(fmt.Sprintf("%s %s", customer.FirstName, customer.LastName))
+	}
+
+	// Format birthday as string if available
+	var birthdayStr *string
+	if !customer.DateOfBirth.IsZero() {
+		bdayStr := customer.DateOfBirth.Format("2006-01-02")
+		birthdayStr = &bdayStr
+	}
+
+	var customerID string
+	query := `INSERT INTO customers (
+		studio_id, full_name, email, phone, notes, nif, address,
+		city, postal_code, country, id_card_number, first_name, last_name, birthday, 
+		is_archived, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), NOW())
+		RETURNING id`
+
+	err = tx.QueryRow(ctx, query,
+		customer.StudioID,
+		fullName,
+		customer.Email,
+		customer.Phone,
+		customer.Notes,
+		customer.NIF,
+		customer.Address,
+		customer.City,
+		customer.PostalCode,
+		customer.Country,
+		customer.IDCardNumber,
+		customer.FirstName,
+		customer.LastName,
+		birthdayStr,
+		customer.IsArchived,
+	).Scan(&customerID)
+
+	if err != nil {
+		// Check for unique constraint violations
+		if pgErr, ok := err.(*pgconn.PgError); ok {
+			if pgErr.Code == "23505" { // unique_violation
+				if strings.Contains(pgErr.Message, "email") {
+					return "", status.Error(codes.AlreadyExists, "a customer with this email already exists")
+				}
+				if strings.Contains(pgErr.Message, "phone") {
+					return "", status.Error(codes.AlreadyExists, "a customer with this phone already exists")
+				}
+			}
+		}
+		return "", status.Errorf(codes.Internal, "failed to create customer: %v", err)
+	}
+
+	// If we got here, commit the transaction
+	if err = tx.Commit(ctx); err != nil {
+		return "", status.Errorf(codes.Internal, "failed to commit transaction: %v", err)
+	}
+
+	return customerID, nil
 }
 
 func (r *PostgresCustomerRepository) Get(ctx context.Context, id string) (*domain.Customer, error) {

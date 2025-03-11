@@ -39,17 +39,25 @@ type AuthRepository interface {
 
 // Customer represents the customer entity in your domain
 type Customer struct {
-	ID          string
-	FirstName   string
-	LastName    string
-	Email       string
-	Phone       string
-	Address     string
-	DateOfBirth time.Time
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   *time.Time
-	IsArchived  bool
+	ID           string
+	StudioID     string
+	FullName     string
+	FirstName    string
+	LastName     string
+	Email        string
+	Phone        string
+	Notes        string
+	NIF          string
+	Address      string
+	City         string
+	PostalCode   string
+	Country      string
+	IDCardNumber string
+	DateOfBirth  time.Time
+	IsArchived   bool
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	DeletedAt    *time.Time
 }
 
 // CustomerNote represents a note attached to a customer
