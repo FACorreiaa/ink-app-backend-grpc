@@ -1,0 +1,42 @@
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+http:
+  routers:
+    # Catch-all for studio subdomains
+    studio-router:
+      rule: "HostRegexp(`{subdomain:[a-z0-9]+}.myplatform.com`)"
+      service: studio-service
+      middlewares:
+        - studio-rewrite
+      entryPoints:
+        - websecure
+    # Admin portal
+    admin-router:
+      rule: "Host(`admin.myplatform.com`) && PathPrefix(`/api/admin/`)"
+      service: admin-service
+      entryPoints:
+        - websecure
+
+  middlewares:
+    studio-rewrite:
+      rewrite:
+        regex: "^/api/(.*)"
+        replacement: "/api/studios/${subdomain}/$1"
+
+  services:
+    studio-service:
+      loadBalancer:
+        servers:
+          - url: "http://studio-service:8080"
+    admin-service:
+      loadBalancer:
+        servers:
+          - url: "http://admin-service:8080"
+
+certificates:
+  - certFile: "/etc/traefik/certs/myplatform.com.crt"
+    keyFile: "/etc/traefik/certs/myplatform.com.key"

@@ -26,7 +26,7 @@ func BootstrapServer(
 	port string,
 	log *zap.Logger,
 	registry *prometheus.Registry,
-	traceProvider trace.TracerProvider, // [currently not used directly, but available if needed]
+	traceProvider trace.TracerProvider, // [currently not used directly, but available if needed
 	opts ...grpc.ServerOption,
 ) (*grpc.Server, net.Listener, error) {
 
@@ -54,7 +54,6 @@ func BootstrapServer(
 	_, recoveryInterceptor := grpcrecovery.Interceptors(grpcrecovery.RegisterMetrics(registry))
 	sessionInterceptor := session.InterceptorSession()
 	requestIDInterceptor := grpcrequest.RequestIDMiddleware()
-
 	// Simple rate limiter for demonstration (10 requests/sec, 20 burst).
 	rateLimiter := grpcratelimit.NewRateLimiter(10, 20)
 

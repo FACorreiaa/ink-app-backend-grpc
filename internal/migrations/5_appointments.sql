@@ -2,7 +2,7 @@
 CREATE TABLE appointments (
                             id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                             studio_id     UUID NOT NULL,
-                            client_id     UUID NOT NULL,
+                            customers_id     UUID NOT NULL,
                             artist_id     UUID,                       -- references users(id) with role='ARTIST'
                             start_time    TIMESTAMPTZ NOT NULL,
                             end_time      TIMESTAMPTZ NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE appointments (
                             CONSTRAINT fk_studio_appointment
                               FOREIGN KEY (studio_id) REFERENCES studios (id) ON DELETE CASCADE,
                             CONSTRAINT fk_client_appointment
-                              FOREIGN KEY (client_id) REFERENCES clients (id) ON DELETE CASCADE,
+                              FOREIGN KEY (customers_id) REFERENCES customers (id) ON DELETE CASCADE,
                             CONSTRAINT fk_artist_appointment
                               FOREIGN KEY (artist_id) REFERENCES users (id)
 );

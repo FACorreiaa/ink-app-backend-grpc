@@ -1,0 +1,37 @@
+flowchart TD
+    A[Start] --> B[Create Studio]
+    B --> C{Studio Created?}
+    C -->|No| D[Error: Studio Creation Failed]
+    C -->|Yes| E[Register Admin User]
+    E --> F{Admin Registered?}
+    F -->|No| G[Error: Admin Registration Failed]
+    F -->|Yes| H[Admin Login]
+    H --> I[Admin Dashboard]
+    
+    I --> J[Create Artist]
+    I --> K[Create Customer]
+    
+    J --> L{Artist Created?}
+    L -->|No| M[Error: Artist Creation Failed]
+    L -->|Yes| N[Artist Added to Studio]
+    
+    K --> O{Customer Created?}
+    O -->|No| P[Error: Customer Creation Failed]
+    O -->|Yes| Q[Customer Added to Studio]
+    
+    Q --> R[Link Customer to Artist]
+    R --> S{Link Successful?}
+    S -->|No| T[Error: Customer-Artist Link Failed]
+    S -->|Yes| U[Customer-Artist Relationship Established]
+    
+    subgraph "Database Tables"
+        DB1[studios]
+        DB2[users]
+        DB3[customers]
+        DB4[customer_artists]
+        
+        DB1 --- DB2
+        DB1 --- DB3
+        DB2 --- DB4
+        DB3 --- DB4
+    end
