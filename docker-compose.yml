@@ -19,6 +19,7 @@ services:
     restart: on-failure
     volumes:
       #- ./.data/docker-postgres:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
       - postgres-data:/var/lib/postgresql/data
     networks:
       - ink-me

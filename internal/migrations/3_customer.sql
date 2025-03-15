@@ -1,4 +1,3 @@
--- 4. appointments: Tracks booking info for each client
 CREATE TABLE customers (
                        id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                        studio_id     UUID NOT NULL,

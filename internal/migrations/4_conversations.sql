@@ -3,7 +3,7 @@
 CREATE TABLE conversations (
                              id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                              studio_id     UUID NOT NULL,
-                             client_id     UUID NOT NULL,
+                             customers_id     UUID NOT NULL,
   -- You can add a unique constraint if you want exactly one conversation per client-artist pair
   -- or do multi-artist group conversations by linking more than one user
                              subject       VARCHAR(200),
@@ -12,7 +12,7 @@ CREATE TABLE conversations (
                              CONSTRAINT fk_studio_convo
                                FOREIGN KEY (studio_id) REFERENCES studios (id) ON DELETE CASCADE,
                              CONSTRAINT fk_client_convo
-                               FOREIGN KEY (client_id) REFERENCES clients (id) ON DELETE CASCADE
+                               FOREIGN KEY (customers_id) REFERENCES customers (id) ON DELETE CASCADE
 );
 
 -- 6. conversation_participants: which users (artists/staff) are part of a conversation

@@ -7,6 +7,19 @@ CREATE TABLE studios (
                        updated_at    TIMESTAMPTZ
 );
 
+CREATE TABLE studio_settings (
+  studio_id UUID PRIMARY KEY REFERENCES studios(id) ON DELETE CASCADE,
+  logo_url TEXT,
+  theme VARCHAR(50),
+  business_hours JSONB,
+  contact_info JSONB,
+  social_media JSONB,
+  preferences JSONB,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+
+
 -- 2. users: Staff members and owners within a studio (e.g. owner = main artist, or multiple staff)
 CREATE TABLE users (
                      id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -22,6 +35,24 @@ CREATE TABLE users (
                      updated_at    TIMESTAMPTZ,
                      CONSTRAINT fk_studio_user
                        FOREIGN KEY (studio_id) REFERENCES studios (id) ON DELETE CASCADE
+);
+
+CREATE TABLE invitations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  studio_id UUID NOT NULL REFERENCES studios(id) ON DELETE CASCADE,
+  email VARCHAR(255) NOT NULL,
+  role VARCHAR(50) NOT NULL,
+  token VARCHAR(255) UNIQUE NOT NULL,
+  invited_by UUID NOT NULL REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at TIMESTAMPTZ NOT NULL,
+  accepted_at TIMESTAMPTZ
+);
+
+CREATE TABLE role_permissions (
+  role VARCHAR(50) NOT NULL,
+  permission VARCHAR(100) NOT NULL,
+  PRIMARY KEY (role, permission)
 );
 
 INSERT INTO studios (id, name, subdomain, created_at, updated_at)

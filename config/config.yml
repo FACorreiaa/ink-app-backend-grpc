@@ -1,57 +1,67 @@
-mode: "dev"
-dotenv: ".env/dev"
-
+mode: production
+dotenv: .env
+tenants:
+  - subdomain: studio1
+    studio:
+      name: "Studio One"
+      address: "123 Tattoo Lane"
+      phone: "+351123456789"
+      email: "contact@studio1.com"
+      website: "https://studio1.myplatform.com"
+    owner:
+      email: "owner@studio1.com"
+      password: "securepassword123"
+      display_name: "Studio One Owner"
+      username: "studio1owner"
+      first_name: "John"
+      last_name: "Doe"
+    database:
+      host: "localhost"
+      port: "5438"
+      username: "postgres"
+      password: "password"
+      db: "tattoo_studio_1"
+      sslmode: "disable"
+      max_con_waiting_time: 30
+  - subdomain: studio2
+    studio:
+      name: "Studio Two"
+      address: "456 Ink Road"
+      phone: "+351987654321"
+      email: "contact@studio2.com"
+      website: "https://studio2.myplatform.com"
+    owner:
+      email: "owner@studio2.com"
+      password: "securepassword456"
+      display_name: "Studio Two Owner"
+      username: "studio2owner"
+      first_name: "Jane"
+      last_name: "Smith"
+    database:
+      host: "localhost"
+      port: "5438"
+      username: "postgres"
+      password: "password"
+      db: "tattoo_studio_2"
+      sslmode: "disable"
+      max_con_waiting_time: 30
 handlers:
   externalAPI:
     port: "8081"
-    certFile: "./.data/server.crt"
-    keyFile: "./.data/server.key"
-    enableTLS: false
-  internalAPI:
-    port: "8083"
-    certFile: "./.data/server.crt"
-    keyFile: "./.data/server.key"
-    enableTLS: false
-  pprof:
-    port: "8082"
-    certFile: "./.data/server.crt"
-    keyFile: "./.data/server.key"
-    enableTLS: false
-  prometheus:
-    port: "8084"
-    certFile: "./.data/server.crt"
-    keyFile: "./.data/server.key"
-    enableTLS: false
-
-services:
-  auth:
-    authTokenTTL: 5
-    refreshTokenTTL: 20160
-    pubKeyFile: "./.data/id_rsa.pub"
-    pemKeyFile: "./.data/id_rsa"
-
-repositories:
-  postgres:
-    host: localhost
-    port: "5438"
-    #    port: "5432"
-    #    host: "postgres"
-    username: "postgres"
-    db: "ink-me-dev"
-    SSLMODE: "verify-full"
-    MAXCONWAITINGTIME: 10
-  redis:
-    host: "redis:6382"
-    db: 0
-
-
-#change later
+    certFile: "cert.pem"
+    keyFile: "key.pem"
+    enableTLS: true
+  # ... other handler configs
 server:
   HTTPPort: "7070"
   GRPCPort: "8080"
-  HTTPTimeout: 15s
-
-upstreamServices:
-  customer: "example.com:1234"
-  auth: "example.com:1234"
-
+  HTTPTimeout: 30s
+upstream_services:
+  customer: "http://customer-service:8080"
+  auth: "http://auth-service:8080"
+redis:
+  host: "localhost"
+  port: "6382"
+  pass: ""
+  db: 0
+  ttl: 24h

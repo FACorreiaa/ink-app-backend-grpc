@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"sync/atomic"
 
-	upb "github.com/FACorreiaa/ink-app-backend-protos/modules/auth/generated"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel"
 
@@ -46,9 +45,8 @@ func ServeGRPC(ctx context.Context, port string, app *AppContainer, reg *prometh
 	}
 
 	// Register services
-	upb.RegisterAuthServer(server, app.AuthService)
-
-	// Add other registrations (e.g., FoodLog, Booking, Gallery) as needed
+	//upb.RegisterAuthServer(server, app.AuthServiceManager)
+	//upc.RegisterCustomerServiceServer(server, app.CustomerService)
 
 	// Enable reflection for debugging
 	reflection.Register(server)

@@ -7,10 +7,13 @@ import (
 	upc "github.com/FACorreiaa/ink-app-backend-protos/modules/customer/generated"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain"
+	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware/grpcrequest"
 )
 
 type ServiceCustomer struct {
@@ -33,6 +36,21 @@ func (s *ServiceCustomer) CreateCustomer(ctx context.Context, req *upc.CreateCus
 		return nil, status.Error(codes.InvalidArgument, "customer details are required")
 	}
 
+	tracer := otel.Tracer("SyncInk")
+	ctx, span := tracer.Start(ctx, "/CustomerService/CreateCustomer")
+	defer span.End()
+
+	requestID, ok := ctx.Value(grpcrequest.RequestIDKey{}).(string)
+	if !ok {
+		return nil, status.Error(codes.Internal, "request id not found in context")
+	}
+
+	if req.Request == nil {
+		req.Request = &upc.BaseRequest{}
+	}
+
+	req.Request.RequestId = requestID
+
 	// Extract customer info from request
 	protoCustomer := req.Customer
 
@@ -46,14 +64,14 @@ func (s *ServiceCustomer) CreateCustomer(ctx context.Context, req *upc.CreateCus
 		}
 	}
 
-	studioID := ctx.Value("studioID").(string)
-	if studioID == "" {
+	userID := ctx.Value("userID").(string)
+	if userID == "" {
 		return nil, status.Error(codes.Unauthenticated, "studioID is missing in metadata")
 	}
 
 	// Map proto customer to domain customer
 	customer := &domain.Customer{
-		StudioID:     studioID,
+		StudioID:     userID,
 		FirstName:    protoCustomer.FirstName,
 		LastName:     protoCustomer.LastName,
 		FullName:     protoCustomer.FullName,
@@ -97,6 +115,11 @@ func (s *ServiceCustomer) CreateCustomer(ctx context.Context, req *upc.CreateCus
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to create customer: %v", err)
 	}
+
+	span.SetAttributes(
+		attribute.String("request.id", req.Request.RequestId),
+		attribute.String("request.details", req.String()),
+	)
 
 	// Return response
 	return &upc.CreateCustomerResponse{
