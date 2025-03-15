@@ -2,7 +2,6 @@ package internal
 
 import (
 	"github.com/FACorreiaa/ink-app-backend-protos/container"
-	"github.com/FACorreiaa/ink-app-backend-protos/modules/auth"
 	"github.com/FACorreiaa/ink-app-backend-protos/modules/customer"
 
 	"github.com/FACorreiaa/ink-app-backend-protos/utils"
@@ -35,12 +34,6 @@ func ConfigureUpstreamClients(log *zap.Logger, transport *utils.TransportUtils) 
 		return nil
 	}
 
-	authBroker, err := auth.NewBroker(cfg.UpstreamServices.Auth)
-	if err != nil {
-		log.Error("failed to create auth service broker", zap.Error(err))
-		return nil
-	}
 	brokers.Customer = customerBroker
-	brokers.Auth = authBroker
 	return brokers
 }
