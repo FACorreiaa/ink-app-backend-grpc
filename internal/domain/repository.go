@@ -123,3 +123,12 @@ type CustomerRepository interface {
 	ExistsByEmail(ctx context.Context, email string) (bool, error)
 	ExistsByPhone(ctx context.Context, phone string) (bool, error)
 }
+
+type StudioRepository interface {
+}
+
+type StudioAuthRepository interface {
+	Login()
+	Logout()
+	RefreshToken()
+}
