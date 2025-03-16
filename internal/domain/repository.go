@@ -35,6 +35,13 @@ import (
 // 	SearchCustomers(ctx context.Context, req *upc.SearchCustomersRequest) (*upc.SearchCustomersResponse, error)
 // }
 
+type StudioSession struct {
+	ID       string `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Tenant   string `json:"tenant"`
+}
+
 // Customer represents the customer entity in your domain
 type Customer struct {
 	ID           string
@@ -128,7 +135,13 @@ type StudioRepository interface {
 }
 
 type StudioAuthRepository interface {
-	Login()
-	Logout()
-	RefreshToken()
+	Login(ctx context.Context, tenant, email, password string) (string, error)
+	Logout(ctx context.Context, tenant, sessionID string) error
+	GetSession(ctx context.Context, tenant, sessionID string) (*StudioSession, error)
+	RefreshSession(ctx context.Context, tenant, sessionID string) (string, error)
+	Register(ctx context.Context, tenant, username, email, password, role string) error
+	ChangePassword(ctx context.Context, tenant, email, oldPassword, newPassword string) error
+	ChangeEmail(ctx context.Context, tenant, email, password, newEmail string) error
+	GetUserByEmail(ctx context.Context, tenant, email string) (string, string, string, error)
+	ValidateCredentials(ctx context.Context, tenant, email, password string) (bool, error)
 }

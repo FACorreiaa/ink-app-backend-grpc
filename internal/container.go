@@ -13,25 +13,25 @@ type AppContainer struct {
 	RedisManager *config.TenantRedisManager
 
 	// Service managers
-	StudioService *studio.StudioService
-	StudioAuth    *studio.StudioAuthService
+	//StudioService *studio.StudioService
+	StudioAuth *studio.StudioAuthService
 	// Add other services as needed
 }
 
 func NewAppContainer(ctx context.Context, dbManager *config.TenantDBManager, redisManager *config.TenantRedisManager) *AppContainer {
 	// Create repositories with tenant awareness
 	studioAuthRepo := studio.NewStudioAuthRepository(dbManager, redisManager)
-	studioRepo := studio.NewUserRepository(dbManager)
+	//studioRepo := studio.NewUserRepository(dbManager)
 
-	// Get a pool from the manager for initialization
-	defaultPool := dbManager.GetDefaultPool()
-	defaultRedis := redisManager.GetDefaultClient()
+	// // Get a pool from the manager for initialization
+	// defaultPool := dbManager.GetDefaultPool()
+	// defaultRedis := redisManager.GetDefaultClient()
 
 	return &AppContainer{
-		Ctx:           ctx,
-		DBManager:     dbManager,
-		RedisManager:  redisManager,
-		StudioService: studio.NewStudioService(ctx, studioRepo, defaultPool, defaultRedis),
-		StudioAuth:    studio.NewStudioAuth(ctx, studioAuthRepo, defaultPool, defaultRedis),
+		Ctx:          ctx,
+		DBManager:    dbManager,
+		RedisManager: redisManager,
+		//StudioService: studio.NewStudioService(ctx, studioRepo, defaultPool, defaultRedis),
+		StudioAuth: studio.NewStudioAuth(ctx, studioAuthRepo),
 	}
 }

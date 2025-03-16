@@ -5,30 +5,25 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/config"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// TenantContextKey is the key used to store tenant information in context
-type TenantContextKey struct{}
-
-// SessionManager handles user authentication sessions
+// StudioAuthRepository handles database operations for studio authentication
 type StudioAuthRepository struct {
 	DBManager    *config.TenantDBManager
 	RedisManager *config.TenantRedisManager
 }
 
-func NewSessionManager(dbManager *config.TenantDBManager, redis *config.TenantRedisManager) *StudioAuthRepository {
+// NewStudioAuthRepository creates a new StudioAuthRepository
+func NewStudioAuthRepository(dbManager *config.TenantDBManager, redisManager *config.TenantRedisManager) *StudioAuthRepository {
 	return &StudioAuthRepository{
 		DBManager:    dbManager,
-		RedisManager: redis,
+		RedisManager: redisManager,
 	}
 }
 
@@ -37,54 +32,20 @@ func generateSessionKey(tenant, sessionID string) string {
 	return fmt.Sprintf("session:%s:%s", tenant, sessionID)
 }
 
-// GenerateTokens creates JWT access and refresh tokens for a user
-func GenerateTokens(userID, tenant, role string) (accessToken string, refreshToken string, err error) {
-	// Access Token with tenant information
-	accessClaims := &domain.Claims{
-		UserID: userID,
-		Tenant: tenant, // Add tenant to claims
-		Role:   role,
-		Scope:  "access",
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(15 * time.Minute)),
-		},
-	}
-	accessToken, err = jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims).SignedString(domain.JwtSecretKey)
-	if err != nil {
-		return "", "", err
-	}
-
-	// Refresh Token with tenant information
-	refreshClaims := &domain.Claims{
-		UserID: userID,
-		Tenant: tenant, // Add tenant to claims
-		Scope:  "refresh",
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
-		},
-	}
-	refreshToken, err = jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims).SignedString(domain.JwtRefreshSecretKey)
-	if err != nil {
-		return "", "", err
-	}
-
-	return accessToken, refreshToken, nil
-}
-
 // SignIn authenticates a user and creates a session
-func (s *StudioAuthRepository) SignIn(ctx context.Context, tenant, email, password string) (string, error) {
+func (r *StudioAuthRepository) Login(ctx context.Context, tenant, email, password string) (string, error) {
 	// Validate tenant
 	if tenant == "" {
 		return "", errors.New("tenant subdomain is required")
 	}
 
 	// Get tenant-specific database pool
-	pool, err := s.DBManager.GetTenantDB(tenant)
+	pool, err := r.DBManager.GetTenantDB(tenant)
 	if err != nil {
 		return "", fmt.Errorf("invalid tenant: %w", err)
 	}
 
-	redis, err := s.RedisManager.GetTenantRedis(tenant)
+	redis, err := r.RedisManager.GetTenantRedis(tenant)
 	if err != nil {
 		return "", fmt.Errorf("invalid tenant: %w", err)
 	}
@@ -111,15 +72,9 @@ func (s *StudioAuthRepository) SignIn(ctx context.Context, tenant, email, passwo
 		return "", errors.New("invalid credentials")
 	}
 
-	// Generate tokens
-	// accessToken, refreshToken, err := GenerateTokens(user.ID, tenant, user.Role)
-	// if err != nil {
-	// 	return "", fmt.Errorf("failed to generate tokens: %w", err)
-	// }
-
 	// Create session
 	sessionID := uuid.NewString()
-	session := UserSession{
+	session := domain.StudioSession{
 		ID:       user.ID,
 		Username: user.Username,
 		Email:    user.Email,
@@ -134,7 +89,7 @@ func (s *StudioAuthRepository) SignIn(ctx context.Context, tenant, email, passwo
 
 	// Store in Redis with tenant-specific key
 	sessionKey := generateSessionKey(tenant, sessionID)
-	err = s.Set(ctx, sessionKey, string(jsonData), 24*time.Hour).Err()
+	err = redis.Set(ctx, sessionKey, string(jsonData), 24*time.Hour).Err()
 	if err != nil {
 		return "", fmt.Errorf("failed to store session: %w", err)
 	}
@@ -153,17 +108,17 @@ func (s *StudioAuthRepository) SignIn(ctx context.Context, tenant, email, passwo
 }
 
 // SignOut invalidates a user session
-func (s *StudioAuthRepository) SignOut(ctx context.Context, tenant, sessionID string) error {
+func (r *StudioAuthRepository) Logout(ctx context.Context, tenant, sessionID string) error {
 	// Delete from Redis
 	sessionKey := generateSessionKey(tenant, sessionID)
 
 	// Get tenant DB to update session record
-	pool, err := s.DBManager.GetTenantDB(tenant)
+	pool, err := r.DBManager.GetTenantDB(tenant)
 	if err != nil {
 		return fmt.Errorf("invalid tenant: %w", err)
 	}
 
-	redis, err := s.RedisManager.GetTenantRedis(tenant)
+	redis, err := r.RedisManager.GetTenantRedis(tenant)
 	if err != nil {
 		return fmt.Errorf("invalid tenant: %w", err)
 	}
@@ -186,53 +141,20 @@ func (s *StudioAuthRepository) SignOut(ctx context.Context, tenant, sessionID st
 	return nil
 }
 
-// Set wraps Redis SET operation
-func (s *StudioAuthRepository) Set(ctx context.Context, key string, value string, expiration time.Duration) (cmd *redis.StatusCmd) {
-	// Get tenant from context or key
-	tenant := extractTenantFromKey(key)
-	redis, err := s.RedisManager.GetTenantRedis(tenant)
-	if err != nil {
-		// Create a StatusCmd with an error
-		cmd.SetErr(fmt.Errorf("invalid tenant: %w", err))
-		return cmd
-	}
-	// Perform the SET operation
-	return redis.Set(ctx, key, value, expiration)
-}
-
-// extractTenantFromKey parses tenant from session key
-func extractTenantFromKey(key string) string {
-	parts := strings.Split(key, ":")
-	if len(parts) >= 2 {
-		return parts[1]
-	}
-	return ""
-}
-
-// Fix the GetUserSession to use tenant
-func (s *StudioAuthRepository) GetUserSession(ctx context.Context, tenant, userID string) (string, error) {
-	redis, err := s.RedisManager.GetTenantRedis(tenant)
-	if err != nil {
-		return "", fmt.Errorf("invalid tenant: %w", err)
-	}
-
-	key := fmt.Sprintf("%s:user:%s", tenant, userID)
-	return redis.Get(ctx, key).Result()
-}
-
 // GetSession retrieves a user session
-func (s *StudioAuthRepository) GetSession(ctx context.Context, tenant, sessionID string) (*UserSession, error) {
+func (r *StudioAuthRepository) GetSession(ctx context.Context, tenant, sessionID string) (*domain.StudioSession, error) {
 	// Try to get from Redis first
 	sessionKey := generateSessionKey(tenant, sessionID)
 
-	redis, error := s.RedisManager.GetTenantRedis(tenant)
-	if error != nil {
-		return nil, fmt.Errorf("invalid tenant: %w", error)
+	redis, err := r.RedisManager.GetTenantRedis(tenant)
+	if err != nil {
+		return nil, fmt.Errorf("invalid tenant: %w", err)
 	}
+
 	data, err := redis.Get(ctx, sessionKey).Result()
 	if err != nil {
 		// If not in Redis, check if it's in DB (might have been evicted from cache)
-		pool, err := s.DBManager.GetTenantDB(tenant)
+		pool, err := r.DBManager.GetTenantDB(tenant)
 		if err != nil {
 			return nil, fmt.Errorf("invalid tenant: %w", err)
 		}
@@ -267,7 +189,7 @@ func (s *StudioAuthRepository) GetSession(ctx context.Context, tenant, sessionID
 		}
 
 		// Recreate session object
-		session := &UserSession{
+		session := &domain.StudioSession{
 			ID:       userID,
 			Username: user.Username,
 			Email:    user.Email,
@@ -282,11 +204,50 @@ func (s *StudioAuthRepository) GetSession(ctx context.Context, tenant, sessionID
 	}
 
 	// Session found in Redis, unmarshal
-	var userSession UserSession
+	var userSession domain.StudioSession
 	err = json.Unmarshal([]byte(data), &userSession)
 	if err != nil {
 		return nil, errors.New("invalid session data")
 	}
 
 	return &userSession, nil
+}
+
+// GetUserByEmail retrieves a user by email
+func (r *StudioAuthRepository) GetUserByEmail(ctx context.Context, tenant, email string) (string, string, string, error) {
+	// Get tenant-specific database pool
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return "", "", "", fmt.Errorf("invalid tenant: %w", err)
+	}
+
+	var id, username, role string
+	err = pool.QueryRow(ctx,
+		"SELECT id, username, role FROM users WHERE email = $1",
+		email).Scan(&id, &username, &role)
+	if err != nil {
+		return "", "", "", fmt.Errorf("user not found: %w", err)
+	}
+
+	return id, username, role, nil
+}
+
+// ValidateCredentials validates user credentials
+func (r *StudioAuthRepository) ValidateCredentials(ctx context.Context, tenant, email, password string) (bool, error) {
+	// Get tenant-specific database pool
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return false, fmt.Errorf("invalid tenant: %w", err)
+	}
+
+	var hashedPassword string
+	err = pool.QueryRow(ctx,
+		"SELECT password FROM users WHERE email = $1",
+		email).Scan(&hashedPassword)
+	if err != nil {
+		return false, fmt.Errorf("user not found: %w", err)
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	return err == nil, nil
 }
