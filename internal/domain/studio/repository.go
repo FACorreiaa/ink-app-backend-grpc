@@ -83,6 +83,7 @@ func (r *StudioAuthRepository) Login(ctx context.Context, tenant, email, passwor
 		Password string
 		Role     string
 	}
+
 	err = pool.QueryRow(ctx,
 		"SELECT id, username, email, hashed_password, role FROM users WHERE email = $1",
 		email).Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.Role)
