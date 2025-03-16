@@ -32,6 +32,6 @@ func NewAppContainer(ctx context.Context, dbManager *config.TenantDBManager, red
 		DBManager:    dbManager,
 		RedisManager: redisManager,
 		//StudioService: studio.NewStudioService(ctx, studioRepo, defaultPool, defaultRedis),
-		StudioAuth: studio.NewStudioAuth(ctx, studioAuthRepo),
+		StudioAuth: studio.NewStudioAuthService(studioAuthRepo),
 	}
 }

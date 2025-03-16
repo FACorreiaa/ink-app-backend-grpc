@@ -138,7 +138,7 @@ type StudioAuthRepository interface {
 	Login(ctx context.Context, tenant, email, password string) (string, error)
 	Logout(ctx context.Context, tenant, sessionID string) error
 	GetSession(ctx context.Context, tenant, sessionID string) (*StudioSession, error)
-	RefreshSession(ctx context.Context, tenant, sessionID string) (string, error)
+	RefreshSession(ctx context.Context, tenant, refreshToken string) (string, string, error) // accessToken, refreshToken, error
 	Register(ctx context.Context, tenant, username, email, password, role string) error
 	ChangePassword(ctx context.Context, tenant, email, oldPassword, newPassword string) error
 	ChangeEmail(ctx context.Context, tenant, email, password, newEmail string) error

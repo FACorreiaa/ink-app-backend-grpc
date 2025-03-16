@@ -9,6 +9,7 @@ import (
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/config"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -27,30 +28,54 @@ func NewStudioAuthRepository(dbManager *config.TenantDBManager, redisManager *co
 	}
 }
 
+// Claims defines JWT claims
+type Claims struct {
+	UserID   string `json:"user_id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Tenant   string `json:"tenant"`
+	Role     string `json:"role"`
+	jwt.RegisteredClaims
+}
+
+// generateAccessToken creates a JWT access token
+func generateAccessToken(userID, username, email, tenant, role string) (string, error) {
+	claims := Claims{
+		UserID:   userID,
+		Username: username,
+		Email:    email,
+		Tenant:   tenant,
+		Role:     role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(15 * time.Minute)), // Short-lived
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(domain.JwtSecretKey) // Assume JwtSecretKey is a global secret
+}
+
+// generateRefreshToken creates a random refresh token
+func generateRefreshToken() string {
+	return uuid.NewString()
+}
+
 // generateSessionKey creates a Redis key with tenant prefix for proper isolation
 func generateSessionKey(tenant, sessionID string) string {
 	return fmt.Sprintf("session:%s:%s", tenant, sessionID)
 }
 
-// SignIn authenticates a user and creates a session
+// Login authenticates a user and returns an access token
 func (r *StudioAuthRepository) Login(ctx context.Context, tenant, email, password string) (string, error) {
-	// Validate tenant
 	if tenant == "" {
 		return "", errors.New("tenant subdomain is required")
 	}
 
-	// Get tenant-specific database pool
 	pool, err := r.DBManager.GetTenantDB(tenant)
 	if err != nil {
 		return "", fmt.Errorf("invalid tenant: %w", err)
 	}
 
-	redis, err := r.RedisManager.GetTenantRedis(tenant)
-	if err != nil {
-		return "", fmt.Errorf("invalid tenant: %w", err)
-	}
-
-	// Find user in the tenant's database
 	var user struct {
 		ID       string
 		Username string
@@ -58,53 +83,35 @@ func (r *StudioAuthRepository) Login(ctx context.Context, tenant, email, passwor
 		Password string
 		Role     string
 	}
-
 	err = pool.QueryRow(ctx,
-		"SELECT id, username, email, password, role FROM users WHERE email = $1",
+		"SELECT id, username, email, hashed_password, role FROM users WHERE email = $1",
 		email).Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.Role)
 	if err != nil {
 		return "", fmt.Errorf("user not found: %w", err)
 	}
 
-	// Verify password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return "", errors.New("invalid credentials")
 	}
 
-	// Create session
-	sessionID := uuid.NewString()
-	session := domain.StudioSession{
-		ID:       user.ID,
-		Username: user.Username,
-		Email:    user.Email,
-		Tenant:   tenant,
-	}
-
-	// Serialize session data
-	jsonData, err := json.Marshal(session)
+	// Generate access token
+	accessToken, err := generateAccessToken(user.ID, user.Username, user.Email, tenant, user.Role)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal session: %w", err)
+		return "", fmt.Errorf("failed to generate access token: %w", err)
 	}
 
-	// Store in Redis with tenant-specific key
-	sessionKey := generateSessionKey(tenant, sessionID)
-	err = redis.Set(ctx, sessionKey, string(jsonData), 24*time.Hour).Err()
-	if err != nil {
-		return "", fmt.Errorf("failed to store session: %w", err)
-	}
-
-	// Store session in database for audit/tracking
+	// Generate and store refresh token
+	refreshToken := generateRefreshToken()
+	expiresAt := time.Now().Add(7 * 24 * time.Hour) // 7 days
 	_, err = pool.Exec(ctx,
-		"INSERT INTO sessions (session_id, user_id, created_at, expires_at) VALUES ($1, $2, $3, $4)",
-		sessionID, user.ID, time.Now(), time.Now().Add(24*time.Hour))
+		"INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)",
+		user.ID, refreshToken, expiresAt)
 	if err != nil {
-		// If DB insert fails, clean up Redis
-		redis.Del(ctx, sessionKey)
-		return "", fmt.Errorf("failed to record session: %w", err)
+		return "", fmt.Errorf("failed to store refresh token: %w", err)
 	}
 
-	return sessionID, nil
+	return accessToken, nil // Note: Refresh token not returned due to proto limitation
 }
 
 // SignOut invalidates a user session
@@ -250,4 +257,175 @@ func (r *StudioAuthRepository) ValidateCredentials(ctx context.Context, tenant, 
 
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	return err == nil, nil
+}
+
+func (r *StudioAuthRepository) RefreshSession(ctx context.Context, tenant, refreshToken string) (string, string, error) {
+	if tenant == "" {
+		return "", "", errors.New("tenant subdomain is required")
+	}
+
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return "", "", fmt.Errorf("invalid tenant: %w", err)
+	}
+
+	var userID string
+	var expiresAt time.Time
+	var invalidatedAt *time.Time
+	err = pool.QueryRow(ctx,
+		"SELECT user_id, expires_at, invalidated_at FROM refresh_tokens WHERE token = $1",
+		refreshToken).Scan(&userID, &expiresAt, &invalidatedAt)
+	if err != nil {
+		return "", "", errors.New("invalid refresh token")
+	}
+
+	if time.Now().After(expiresAt) || invalidatedAt != nil {
+		return "", "", errors.New("refresh token expired or invalidated")
+	}
+
+	var username, email, role string
+	err = pool.QueryRow(ctx,
+		"SELECT username, email, role FROM users WHERE id = $1",
+		userID).Scan(&username, &email, &role)
+	if err != nil {
+		return "", "", fmt.Errorf("user not found: %w", err)
+	}
+
+	newAccessToken, err := generateAccessToken(userID, username, email, tenant, role)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to generate access token: %w", err)
+	}
+
+	newRefreshToken := generateRefreshToken()
+	newExpiresAt := time.Now().Add(7 * 24 * time.Hour)
+	_, err = pool.Exec(ctx,
+		"INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)",
+		userID, newRefreshToken, newExpiresAt)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to store new refresh token: %w", err)
+	}
+
+	_, err = pool.Exec(ctx,
+		"UPDATE refresh_tokens SET invalidated_at = $1 WHERE token = $2",
+		time.Now(), refreshToken)
+	if err != nil {
+		fmt.Printf("Warning: failed to invalidate old refresh token: %v\n", err)
+	}
+
+	return newAccessToken, newRefreshToken, nil
+}
+
+// Register creates a new user in the tenant's database
+func (r *StudioAuthRepository) Register(ctx context.Context, tenant, username, email, password, role string) error {
+	if tenant == "" {
+		return errors.New("tenant subdomain is required")
+	}
+
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return fmt.Errorf("invalid tenant: %w", err)
+	}
+
+	// Get studio_id (assuming one studio per tenant DB)
+	var studioID string
+	err = pool.QueryRow(ctx,
+		"SELECT id FROM studios WHERE subdomain = $1", tenant).Scan(&studioID)
+	if err != nil {
+		return fmt.Errorf("studio not found: %w", err)
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	_, err = pool.Exec(ctx,
+		"INSERT INTO users (studio_id, username, email, hashed_password, role, created_at) VALUES ($1, $2, $3, $4, $5, $6)",
+		studioID, username, email, string(hashedPassword), role, time.Now())
+	if err != nil {
+		return fmt.Errorf("failed to insert user: %w", err)
+	}
+
+	return nil
+}
+
+// ChangePassword updates a user's password
+func (r *StudioAuthRepository) ChangePassword(ctx context.Context, tenant, email, oldPassword, newPassword string) error {
+	if tenant == "" {
+		return errors.New("tenant subdomain is required")
+	}
+
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return fmt.Errorf("invalid tenant: %w", err)
+	}
+
+	var userID, hashedPassword string
+	err = pool.QueryRow(ctx,
+		"SELECT id, hashed_password FROM users WHERE email = $1",
+		email).Scan(&userID, &hashedPassword)
+	if err != nil {
+		return fmt.Errorf("user not found: %w", err)
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(oldPassword))
+	if err != nil {
+		return errors.New("invalid old password")
+	}
+
+	newHashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash new password: %w", err)
+	}
+
+	_, err = pool.Exec(ctx,
+		"UPDATE users SET hashed_password = $1, updated_at = $2 WHERE id = $3",
+		string(newHashedPassword), time.Now(), userID)
+	if err != nil {
+		return fmt.Errorf("failed to update password: %w", err)
+	}
+
+	// Invalidate all refresh tokens
+	_, err = pool.Exec(ctx,
+		"UPDATE refresh_tokens SET invalidated_at = $1 WHERE user_id = $2 AND invalidated_at IS NULL",
+		time.Now(), userID)
+	if err != nil {
+		fmt.Printf("Warning: failed to invalidate refresh tokens: %v\n", err)
+	}
+
+	return nil
+}
+
+// ChangeEmail updates a user's email
+func (r *StudioAuthRepository) ChangeEmail(ctx context.Context, tenant, email, password, newEmail string) error {
+	if tenant == "" {
+		return errors.New("tenant subdomain is required")
+	}
+
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return fmt.Errorf("invalid tenant: %w", err)
+	}
+
+	var userID, hashedPassword string
+	err = pool.QueryRow(ctx,
+		"SELECT id, hashed_password FROM users WHERE email = $1",
+		email).Scan(&userID, &hashedPassword)
+	if err != nil {
+		return fmt.Errorf("user not found: %w", err)
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	if err != nil {
+		return errors.New("invalid credentials")
+	}
+
+	_, err = pool.Exec(ctx,
+		"UPDATE users SET email = $1, updated_at = $2 WHERE id = $3",
+		newEmail, time.Now(), userID)
+	if err != nil {
+		return fmt.Errorf("failed to update email: %w", err)
+	}
+
+	return nil
 }

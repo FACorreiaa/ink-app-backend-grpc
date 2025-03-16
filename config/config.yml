@@ -1,7 +1,7 @@
 mode: production
 dotenv: .env
 tenants:
-  - subdomain: studio1
+  - subdomain: localhost:8080
     studio:
       name: "Studio One"
       address: "123 Tattoo Lane"
@@ -23,7 +23,7 @@ tenants:
       db: "tattoo_studio_1"
       sslmode: "disable"
       max_con_waiting_time: 30
-  - subdomain: studio2
+  - subdomain: localhost:8081
     studio:
       name: "Studio Two"
       address: "456 Ink Road"
