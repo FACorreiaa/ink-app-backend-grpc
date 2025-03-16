@@ -64,6 +64,12 @@ func NewTenantDBManager(cfg *config.Config) (*config.TenantDBManager, error) {
 	}
 
 	for _, tenant := range cfg.Tenants {
+		log.Info("Loaded tenant configuration",
+			zap.String("subdomain", tenant.Subdomain),
+			zap.String("studio_name", tenant.Studio.Name),
+			zap.String("owner_email", tenant.Owner.Email),
+			zap.String("database", tenant.Database.DB))
+
 		dbConfig := tenant.Database
 		connURL := url.URL{
 			Scheme: "postgres",
@@ -75,6 +81,10 @@ func NewTenantDBManager(cfg *config.Config) (*config.TenantDBManager, error) {
 				"timezone": []string{"utc"},
 			}.Encode(),
 		}
+
+		log.Info("Connecting to tenant database",
+			zap.String("subdomain", tenant.Subdomain),
+			zap.String("connection_url", connURL.String()))
 
 		pool, err := Init(connURL.String())
 		if err != nil {
@@ -369,7 +379,10 @@ func InitializeTenantSystem(ctx context.Context, pool *pgxpool.Pool, tenantCfg *
 		return nil
 	}
 
-	log.Info("Initializing tenant", zap.String("subdomain", tenantCfg.Subdomain))
+	log.Info("Initializing tenant with data",
+		zap.String("subdomain", tenantCfg.Subdomain),
+		zap.String("studio_name", tenantCfg.Studio.Name),
+		zap.String("owner_email", tenantCfg.Owner.Email))
 
 	tx, err := pool.Begin(ctx)
 	if err != nil {

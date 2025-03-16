@@ -109,7 +109,7 @@ func main() {
 
 	log := logger.Log
 
-	dbManager, redisClient, err := run()
+	dbManager, redisManager, err := run()
 	if err != nil {
 		log.Error("failed to run the application", zap.Error(err))
 		return
@@ -121,7 +121,7 @@ func main() {
 	}()
 
 	defer func() {
-		for _, tenantRedis := range redisClient.Tenants {
+		for _, tenantRedis := range redisManager.Tenants {
 			tenantRedis.Client.Close()
 		}
 	}()
@@ -134,7 +134,7 @@ func main() {
 	}
 
 	// Pass dbManager to AppContainer instead of a single pool
-	appContainer := internal.NewAppContainer(ctx, dbManager, redisClient)
+	appContainer := internal.NewAppContainer(ctx, dbManager, redisManager)
 
 	if err = startServer(ctx, &cfg, appContainer, reg); err != nil {
 		logger.Log.Error("service error", zap.Error(err))
