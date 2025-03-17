@@ -3,6 +3,8 @@ package domain
 import (
 	"context"
 	"time"
+
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
 // type AuthRepository interface {
@@ -104,6 +106,54 @@ type PagedResult[T any] struct {
 	PageSize   int
 }
 
+// StaffMember represents a staff member in a studio
+type OwnerInfo struct {
+	ID          string
+	Email       string
+	Password    string
+	DisplayName string
+	Username    string
+	FirstName   string
+	LastName    string
+}
+
+type Studio struct {
+	ID        string
+	Name      string
+	Address   string
+	Phone     string
+	Email     string
+	Website   string
+	Tenant    string
+	Owner     *OwnerInfo
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time
+}
+
+type StaffMember struct {
+	ID          string
+	StudioID    string
+	UserID      string
+	Role        string
+	Permissions []string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   *time.Time
+}
+
+type User struct {
+	ID           string
+	Username     string
+	Email        string
+	PasswordHash string
+	Role         string // "owner", "staff", "customer", etc.
+	StudioID     string // Which studio they belong to (if applicable)
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	DeletedAt    *time.Time
+}
+
 type CustomerRepository interface {
 	// Basic CRUD operations
 	Create(ctx context.Context, customer *Customer) (string, error)
@@ -131,17 +181,42 @@ type CustomerRepository interface {
 	ExistsByPhone(ctx context.Context, phone string) (bool, error)
 }
 
-type StudioRepository interface {
-}
-
 type StudioAuthRepository interface {
 	Login(ctx context.Context, tenant, email, password string) (string, error)
 	Logout(ctx context.Context, tenant, sessionID string) error
 	GetSession(ctx context.Context, tenant, sessionID string) (*StudioSession, error)
 	RefreshSession(ctx context.Context, tenant, refreshToken string) (string, string, error) // accessToken, refreshToken, error
 	Register(ctx context.Context, tenant, username, email, password, role string) error
+	ValidateCredentials(ctx context.Context, tenant, email, password string) (bool, error)
+	ValidateSession(ctx context.Context, tenant, sessionID string) (bool, error)
 	ChangePassword(ctx context.Context, tenant, email, oldPassword, newPassword string) error
 	ChangeEmail(ctx context.Context, tenant, email, password, newEmail string) error
 	GetUserByEmail(ctx context.Context, tenant, email string) (string, string, string, error)
-	ValidateCredentials(ctx context.Context, tenant, email, password string) (bool, error)
+	GetUserByID(ctx context.Context, tenant, userID string) (*User, error)
+	GetAllUsers(ctx context.Context, tenant string) ([]*User, error)
+	UpdateUser(ctx context.Context, tenant string, user *User) error
+	InsertUser(ctx context.Context, tenant string, user *User) error
+	DeleteUser(ctx context.Context, tenant, userID string) error
+}
+
+type StudioRepository interface {
+	CreateStudio(ctx context.Context, tenant string, studio *Studio, owner *OwnerInfo) (string, error) // studioID, error
+	UpdateStudio(ctx context.Context, tenant, studioID string, studio *Studio, updateMask *fieldmaskpb.FieldMask) error
+	GetStudio(ctx context.Context, tenant, studioID string) (*Studio, error)
+	ListStudios(ctx context.Context, tenant string, pageSize, pageNumber int32, filter, ownerID string) ([]*Studio, int32, error) // studios, totalCount, error
+
+	// Staff management
+	AddStaffMember(ctx context.Context, tenant, studioID, userID, role string, permissions []string) (string, error) // staffID, error
+	UpdateStaffMember(ctx context.Context, tenant, staffID, role string) error
+	RemoveStaffMember(ctx context.Context, tenant, staffID string) error
+	ListStaffMembers(ctx context.Context, tenant, studioID string) ([]*StaffMember, error)
+
+	// Studio users management
+	AddStudioUser(ctx context.Context, tenant, studioID, email, password, role, displayName, username, firstName, lastName string) (string, error) // userID, error
+	UpdateStudioUser(ctx context.Context, tenant, userID, studioID, email, role, displayName, username, firstName, lastName string, updateMask *fieldmaskpb.FieldMask) error
+	RemoveStudioUser(ctx context.Context, tenant, userID, studioID string) error
+
+	// Permissions
+	SetStaffPermissions(ctx context.Context, tenant, staffID string, permissions []string) error
+	GetStaffPermissions(ctx context.Context, tenant, staffID string) ([]string, error)
 }

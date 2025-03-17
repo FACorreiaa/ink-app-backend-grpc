@@ -2,6 +2,10 @@ cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250316143434-4adce3e36165 h1:VuJnaQhERp6n9fpSiwU7eoFaKn5rxsY+xTm1Yd7z5a0=
 github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250316143434-4adce3e36165/go.mod h1:+4nikOfpJrACvfP6UG/hTJxPGw9OY/ODj2FvdcdtbWE=
+github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250316221225-2c9de9a699e3 h1:ot8VzHN/56wTYmcalZdFhhwykkj83Fbws7hKClNk/OM=
+github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250316221225-2c9de9a699e3/go.mod h1:hOzOGV0dRqv+a9Je9Q4Uds5DvaecY356YIRQ/RCdtfk=
+github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250317150459-41af68fe0bba h1:LQF2AH6PHWvs6vDMpmkWB0eUUCt80BXEWefSxuJVPjU=
+github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250317150459-41af68fe0bba/go.mod h1:hOzOGV0dRqv+a9Je9Q4Uds5DvaecY356YIRQ/RCdtfk=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=

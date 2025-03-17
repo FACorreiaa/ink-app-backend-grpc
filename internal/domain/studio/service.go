@@ -208,3 +208,50 @@ func (s *StudioAuthService) ValidateSession(ctx context.Context, req *ups.Valida
 		Email:    session.Email,
 	}, nil
 }
+
+func (s *StudioAuthService) GetUserByID(ctx context.Context, req *ups.GetUserByIDRequest) (*ups.GetUserByIDResponse, error) {
+	// tenant, err := extractTenantFromContext(ctx)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// if req.UserId == "" {
+	// 	return nil, status.Error(codes.InvalidArgument, "user ID required")
+	// }
+
+	// user, err := s.repo.GetUserByID(ctx, tenant, req.UserId)
+	// if err != nil {
+	// 	return nil, status.Errorf(codes.NotFound, "user not found: %v", err)
+	// }
+
+	// return &ups.GetUserByIDResponse{
+	// 	Username: user.Username,
+	// 	Email:    user.Email,
+	// 	Role:     user.Role,
+	// }, nil
+	return nil, status.Error(codes.Unimplemented, "method not implemented")
+}
+
+func (s *StudioAuthService) GetAllUsers(ctx context.Context, req *ups.GetAllUsersRequest) (*ups.GetAllUsersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method not implemented")
+}
+
+func (s *StudioAuthService) UpdateUser(ctx context.Context, req *ups.UpdateUserRequest) (*ups.UpdateUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method not implemented")
+}
+
+func (s *StudioAuthService) DeleteUser(ctx context.Context, req *ups.DeleteUserRequest) (*ups.DeleteUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method not implemented")
+}
+
+func (s *StudioAuthService) InsertUser(ctx context.Context, req *ups.InsertUserRequest) (*ups.InsertUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method not implemented")
+}
+
+func (s *StudioAuthService) GetUserByEmail(ctx context.Context, req *ups.GetUserByEmailRequest) (*ups.GetUserByEmailResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method not implemented")
+}
+
+func (s *StudioAuthService) GetUserByUsername(ctx context.Context, req *ups.GetUserByUsernameRequest) (*ups.GetUserByUsernameResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method not implemented")
+}

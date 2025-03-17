@@ -430,3 +430,27 @@ func (r *StudioAuthRepository) ChangeEmail(ctx context.Context, tenant, email, p
 
 	return nil
 }
+
+func (r *StudioAuthRepository) ValidateSession(ctx context.Context, tenant, sessionID string) (bool, error) {
+	return false, nil
+}
+
+func (r *StudioAuthRepository) GetUserByID(ctx context.Context, tenant, userID string) (*domain.User, error) {
+	return nil, nil
+}
+
+func (r *StudioAuthRepository) GetAllUsers(ctx context.Context, tenant string) ([]*domain.User, error) {
+	return nil, nil
+}
+
+func (r *StudioAuthRepository) UpdateUser(ctx context.Context, tenant string, user *domain.User) error {
+	return nil
+}
+
+func (r *StudioAuthRepository) InsertUser(ctx context.Context, tenant string, user *domain.User) error {
+	return nil
+}
+
+func (r *StudioAuthRepository) DeleteUser(ctx context.Context, tenant, userID string) error {
+	return nil
+}
