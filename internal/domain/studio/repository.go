@@ -432,11 +432,33 @@ func (r *StudioAuthRepository) ChangeEmail(ctx context.Context, tenant, email, p
 }
 
 func (r *StudioAuthRepository) ValidateSession(ctx context.Context, tenant, sessionID string) (bool, error) {
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return false, fmt.Errorf("invalid tenant: %w", err)
+	}
+
 	return false, nil
 }
 
 func (r *StudioAuthRepository) GetUserByID(ctx context.Context, tenant, userID string) (*domain.User, error) {
-	return nil, nil
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return nil, fmt.Errorf("invalid tenant: %w", err)
+	}
+
+	var user domain.User
+	err = pool.QueryRow(ctx,
+		"SELECT id, username, email, role FROM users WHERE id = $1",
+		userID).Scan(&user.ID, &user.Username, &user.Email, &user.Role)
+	if err != nil {
+		return nil, fmt.Errorf("user not found: %w", err)
+	}
+
+	user.StudioID = tenant
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
+
+	return &user, nil
 }
 
 func (r *StudioAuthRepository) GetAllUsers(ctx context.Context, tenant string) ([]*domain.User, error) {

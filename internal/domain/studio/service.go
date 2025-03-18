@@ -5,7 +5,10 @@ import (
 	"strings"
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain"
+	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware/grpcrequest"
 	ups "github.com/FACorreiaa/ink-app-backend-protos/modules/studio/generated"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -210,26 +213,61 @@ func (s *StudioAuthService) ValidateSession(ctx context.Context, req *ups.Valida
 }
 
 func (s *StudioAuthService) GetUserByID(ctx context.Context, req *ups.GetUserByIDRequest) (*ups.GetUserByIDResponse, error) {
-	// tenant, err := extractTenantFromContext(ctx)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	tracer := otel.Tracer("InkMe")
+	ctx, span := tracer.Start(ctx, "StudioAuth/GetUserByID")
+	defer span.End()
 
-	// if req.UserId == "" {
-	// 	return nil, status.Error(codes.InvalidArgument, "user ID required")
-	// }
+	requestID, ok := ctx.Value(grpcrequest.RequestIDKey{}).(string)
+	if !ok {
+		return nil, status.Error(codes.Internal, "request id not found in context")
+	}
 
-	// user, err := s.repo.GetUserByID(ctx, tenant, req.UserId)
-	// if err != nil {
-	// 	return nil, status.Errorf(codes.NotFound, "user not found: %v", err)
-	// }
+	tenant, err := extractTenantFromContext(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "invalid tenant: %v", err)
+	}
 
-	// return &ups.GetUserByIDResponse{
-	// 	Username: user.Username,
-	// 	Email:    user.Email,
-	// 	Role:     user.Role,
-	// }, nil
-	return nil, status.Error(codes.Unimplemented, "method not implemented")
+	if req.UserId == "" {
+		return nil, status.Error(codes.InvalidArgument, "user ID required")
+	}
+
+	user, err := s.repo.GetUserByID(ctx, tenant, req.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "user not found: %v", err)
+	}
+
+	span.SetAttributes(
+		attribute.String("request.id", req.UserId),
+		attribute.String("request.details", req.String()),
+	)
+
+	// Convert string role to User_Role enum
+	var userRole ups.User_Role
+	switch user.Role {
+	case "admin":
+		userRole = ups.User_ADMIN
+	case "staff":
+		userRole = ups.User_STAFF
+	case "user":
+		userRole = ups.User_USER
+	case "moderator":
+		userRole = ups.User_MODERATOR
+	default:
+		userRole = ups.User_ROLE_UNSPECIFIED
+	}
+
+	return &ups.GetUserByIDResponse{
+		User: &ups.User{
+			UserId:   user.ID,
+			Username: user.Username,
+			Email:    user.Email,
+			Role:     userRole,
+		},
+		Response: &ups.BaseResponse{
+			RequestId: requestID,
+			Status:    "success",
+		},
+	}, nil
 }
 
 func (s *StudioAuthService) GetAllUsers(ctx context.Context, req *ups.GetAllUsersRequest) (*ups.GetAllUsersResponse, error) {

@@ -2,7 +2,6 @@ package session
 
 import (
 	"context"
-	"log"
 
 	"github.com/golang-jwt/jwt/v5"
 	"google.golang.org/grpc"
@@ -24,12 +23,10 @@ func InterceptorSession() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		log.Println("Full method:", info.FullMethod)
-
 		unauthenticatedMethods := map[string]bool{
-			"/inkMe.studio.StudioAuth/Register":    true,
-			"/inkMe.studio.StudioAuth/Login":       true,
-			"/inkMe.studio.StudioAuth/GetAllUsers": true,
+			"/inkMe.auth.Auth/Register":    true,
+			"/inkMe.auth.Auth/Login":       true,
+			"/inkMe.auth.Auth/GetAllUsers": true,
 		}
 		if unauthenticatedMethods[info.FullMethod] {
 			return handler(ctx, req)
