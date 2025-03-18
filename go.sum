@@ -6,6 +6,8 @@ github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250316221225-2c9de9a699e3 
 github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250316221225-2c9de9a699e3/go.mod h1:hOzOGV0dRqv+a9Je9Q4Uds5DvaecY356YIRQ/RCdtfk=
 github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250317150459-41af68fe0bba h1:LQF2AH6PHWvs6vDMpmkWB0eUUCt80BXEWefSxuJVPjU=
 github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250317150459-41af68fe0bba/go.mod h1:hOzOGV0dRqv+a9Je9Q4Uds5DvaecY356YIRQ/RCdtfk=
+github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250318080028-b028b9bce082 h1:CXZxG/czKFjDDtM+274Q48R+ZlhNr+UpzvM4hRmcBfM=
+github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250318080028-b028b9bce082/go.mod h1:hOzOGV0dRqv+a9Je9Q4Uds5DvaecY356YIRQ/RCdtfk=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
@@ -110,6 +112,8 @@ github.com/prometheus/common v0.63.0 h1:YR/EIY1o3mEFP/kZCD7iDMnLPlGyuU2Gb3HIcXnA
 github.com/prometheus/common v0.63.0/go.mod h1:VVFF/fBIoToEnWRVkYoXEkq3R3paCoxG9PXP74SnV18=
 github.com/prometheus/procfs v0.15.1 h1:YagwOFzUgYfKKHX6Dr+sHT7km/hxC76UB0learggepc=
 github.com/prometheus/procfs v0.15.1/go.mod h1:fB45yRUv8NstnjriLhBQLuOUt+WW4BsoGhij/e3PBqk=
+github.com/prometheus/procfs v0.16.0 h1:xh6oHhKwnOJKMYiYBDWmkHqQPyiY40sny36Cmx2bbsM=
+github.com/prometheus/procfs v0.16.0/go.mod h1:8veyXUu3nGP7oaCxhX6yeaM5u4stL2FeMXnCqhDthZg=
 github.com/redis/go-redis/v9 v9.7.1 h1:4LhKRCIduqXqtvCUlaq9c8bdHOkICjDMrr1+Zb3osAc=
 github.com/redis/go-redis/v9 v9.7.1/go.mod h1:f6zhXITC7JUJIlPEiBOTXxJgPLdZcA93GewI7inzyWw=
 github.com/rogpeppe/go-internal v1.13.1 h1:KvO1DLK/DRN07sQ1LQKScxyZJuNnedQ5/wKSR38lUII=

@@ -3,7 +3,7 @@ module github.com/FACorreiaa/ink-app-backend-grpc
 go 1.24.1
 
 require (
-	github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250317150459-41af68fe0bba
+	github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250318080028-b028b9bce082
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
@@ -46,7 +46,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.63.0 // indirect
-	github.com/prometheus/procfs v0.15.1 // indirect
+	github.com/prometheus/procfs v0.16.0 // indirect
 	github.com/sagikazarmark/locafero v0.8.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.14.0 // indirect
