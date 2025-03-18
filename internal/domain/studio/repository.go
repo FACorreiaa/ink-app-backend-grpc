@@ -437,7 +437,19 @@ func (r *StudioAuthRepository) ValidateSession(ctx context.Context, tenant, sess
 		return false, fmt.Errorf("invalid tenant: %w", err)
 	}
 
-	return false, nil
+	var userID string
+	err = pool.QueryRow(ctx,
+		"SELECT user_id FROM sessions WHERE session_id = $1",
+		sessionID).Scan(&userID)
+	if err != nil {
+		return false, fmt.Errorf("session not found: %w", err)
+	}
+
+	if userID == "" {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 func (r *StudioAuthRepository) GetUserByID(ctx context.Context, tenant, userID string) (*domain.User, error) {

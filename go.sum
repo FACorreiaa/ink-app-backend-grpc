@@ -1,11 +1,5 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250316143434-4adce3e36165 h1:VuJnaQhERp6n9fpSiwU7eoFaKn5rxsY+xTm1Yd7z5a0=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250316143434-4adce3e36165/go.mod h1:+4nikOfpJrACvfP6UG/hTJxPGw9OY/ODj2FvdcdtbWE=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250316221225-2c9de9a699e3 h1:ot8VzHN/56wTYmcalZdFhhwykkj83Fbws7hKClNk/OM=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250316221225-2c9de9a699e3/go.mod h1:hOzOGV0dRqv+a9Je9Q4Uds5DvaecY356YIRQ/RCdtfk=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250317150459-41af68fe0bba h1:LQF2AH6PHWvs6vDMpmkWB0eUUCt80BXEWefSxuJVPjU=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250317150459-41af68fe0bba/go.mod h1:hOzOGV0dRqv+a9Je9Q4Uds5DvaecY356YIRQ/RCdtfk=
 github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250318080028-b028b9bce082 h1:CXZxG/czKFjDDtM+274Q48R+ZlhNr+UpzvM4hRmcBfM=
 github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250318080028-b028b9bce082/go.mod h1:hOzOGV0dRqv+a9Je9Q4Uds5DvaecY356YIRQ/RCdtfk=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
@@ -110,8 +104,6 @@ github.com/prometheus/client_model v0.6.1 h1:ZKSh/rekM+n3CeS952MLRAdFwIKqeY8b62p
 github.com/prometheus/client_model v0.6.1/go.mod h1:OrxVMOVHjw3lKMa8+x6HeMGkHMQyHDk9E3jmP2AmGiY=
 github.com/prometheus/common v0.63.0 h1:YR/EIY1o3mEFP/kZCD7iDMnLPlGyuU2Gb3HIcXnA98k=
 github.com/prometheus/common v0.63.0/go.mod h1:VVFF/fBIoToEnWRVkYoXEkq3R3paCoxG9PXP74SnV18=
-github.com/prometheus/procfs v0.15.1 h1:YagwOFzUgYfKKHX6Dr+sHT7km/hxC76UB0learggepc=
-github.com/prometheus/procfs v0.15.1/go.mod h1:fB45yRUv8NstnjriLhBQLuOUt+WW4BsoGhij/e3PBqk=
 github.com/prometheus/procfs v0.16.0 h1:xh6oHhKwnOJKMYiYBDWmkHqQPyiY40sny36Cmx2bbsM=
 github.com/prometheus/procfs v0.16.0/go.mod h1:8veyXUu3nGP7oaCxhX6yeaM5u4stL2FeMXnCqhDthZg=
 github.com/redis/go-redis/v9 v9.7.1 h1:4LhKRCIduqXqtvCUlaq9c8bdHOkICjDMrr1+Zb3osAc=
