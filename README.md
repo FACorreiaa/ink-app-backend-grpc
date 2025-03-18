@@ -2,7 +2,7 @@
 
 ## Overview
 
-### The Idea
+### Summary
 Tattoo artists often struggle with managing client inquiries through Instagram or WhatsApp, leading to disorganized communication and lost opportunities. This SaaS platform provides tattoo artists with a **dedicated back-office (web application) and mobile app** to streamline client interactions, manage appointments, share designs, and facilitate real-time communication.
 
 ### Business Model & Differentiation
