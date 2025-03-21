@@ -4,7 +4,7 @@ go 1.24.1
 
 require (
 	github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250318080028-b028b9bce082
-	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.0.1
