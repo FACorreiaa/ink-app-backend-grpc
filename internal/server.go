@@ -46,7 +46,8 @@ func ServeGRPC(ctx context.Context, port string, app *AppContainer, reg *prometh
 	}
 
 	// Register services
-	ups.RegisterStudioAuthServer(server, app.StudioAuth)
+	ups.RegisterAuthServiceServer(server, app.AuthService)
+	ups.RegisterStudioServiceServer(server, app.StudioService)
 	//ups.RegisterStudioServiceServer(server, app.StudioService)
 	//upb.RegisterAuthServer(server, app.AuthServiceManager)
 	//upc.RegisterCustomerServiceServer(server, app.CustomerService)

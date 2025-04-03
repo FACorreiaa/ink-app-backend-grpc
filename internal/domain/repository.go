@@ -182,21 +182,13 @@ type CustomerRepository interface {
 }
 
 type StudioAuthRepository interface {
-	Login(ctx context.Context, tenant, email, password string) (string, error)
+	Login(ctx context.Context, tenant, email, password string) (string, string, error)
 	Logout(ctx context.Context, tenant, sessionID string) error
 	GetSession(ctx context.Context, tenant, sessionID string) (*StudioSession, error)
 	RefreshSession(ctx context.Context, tenant, refreshToken string) (string, string, error) // accessToken, refreshToken, error
 	Register(ctx context.Context, tenant, username, email, password, role string) error
 	ValidateCredentials(ctx context.Context, tenant, email, password string) (bool, error)
 	ValidateSession(ctx context.Context, tenant, sessionID string) (bool, error)
-	ChangePassword(ctx context.Context, tenant, email, oldPassword, newPassword string) error
-	ChangeEmail(ctx context.Context, tenant, email, password, newEmail string) error
-	GetUserByEmail(ctx context.Context, tenant, email string) (string, string, string, error)
-	GetUserByID(ctx context.Context, tenant, userID string) (*User, error)
-	GetAllUsers(ctx context.Context, tenant string) ([]*User, error)
-	UpdateUser(ctx context.Context, tenant string, user *User) error
-	InsertUser(ctx context.Context, tenant string, user *User) error
-	DeleteUser(ctx context.Context, tenant, userID string) error
 }
 
 type StudioRepository interface {
@@ -219,4 +211,15 @@ type StudioRepository interface {
 	// Permissions
 	SetStaffPermissions(ctx context.Context, tenant, staffID string, permissions []string) error
 	GetStaffPermissions(ctx context.Context, tenant, staffID string) ([]string, error)
+}
+
+type UserRepository interface {
+	ChangePassword(ctx context.Context, tenant, email, oldPassword, newPassword string) error
+	ChangeEmail(ctx context.Context, tenant, email, password, newEmail string) error
+	GetUserByEmail(ctx context.Context, tenant, email string) (string, string, string, error)
+	GetUserByID(ctx context.Context, tenant, userID string) (*User, error)
+	GetAllUsers(ctx context.Context, tenant string) ([]*User, error)
+	UpdateUser(ctx context.Context, tenant string, user *User) error
+	InsertUser(ctx context.Context, tenant string, user *User) error
+	DeleteUser(ctx context.Context, tenant, userID string) error
 }

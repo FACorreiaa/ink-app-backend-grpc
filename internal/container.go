@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/config"
+	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain/auth"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain/studio"
 )
 
@@ -14,24 +15,25 @@ type AppContainer struct {
 
 	// Service managers
 	//StudioService *studio.StudioService
-	StudioAuth *studio.StudioAuthService
+	AuthService   *auth.StudioAuthService
+	StudioService *studio.StudioService
 	// Add other services as needed
 }
 
 func NewAppContainer(ctx context.Context, dbManager *config.TenantDBManager, redisManager *config.TenantRedisManager) *AppContainer {
 	// Create repositories with tenant awareness
-	studioAuthRepo := studio.NewStudioAuthRepository(dbManager, redisManager)
-	//studioRepo := studio.NewUserRepository(dbManager)
+	studioAuthRepo := auth.NewStudioAuthRepository(dbManager, redisManager)
+	studioRepo := studio.NewStudioRepository(dbManager, redisManager)
 
 	// // Get a pool from the manager for initialization
 	// defaultPool := dbManager.GetDefaultPool()
 	// defaultRedis := redisManager.GetDefaultClient()
 
 	return &AppContainer{
-		Ctx:          ctx,
-		DBManager:    dbManager,
-		RedisManager: redisManager,
-		//StudioService: studio.NewStudioService(ctx, studioRepo, defaultPool, defaultRedis),
-		StudioAuth: studio.NewStudioAuthService(studioAuthRepo),
+		Ctx:           ctx,
+		DBManager:     dbManager,
+		RedisManager:  redisManager,
+		StudioService: studio.NewStudioService(studioRepo),
+		AuthService:   auth.NewStudioAuthService(studioAuthRepo),
 	}
 }

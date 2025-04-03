@@ -57,6 +57,7 @@ func BootstrapServer(
 	// Simple rate limiter for demonstration (10 requests/sec, 20 burst).
 	rateLimiter := grpcratelimit.NewRateLimiter(10, 20)
 
+	//tenantInterceptor := grpctenant.TenantInterceptor(grpctenant.SimpleTenantValidator())
 	// Base gRPC server options.
 	serverOptions := []grpc.ServerOption{
 		// Adjust keepalive.
@@ -65,12 +66,13 @@ func BootstrapServer(
 
 		// Chain all unary interceptors in an order that ensures correct context propagation.
 		grpc.ChainUnaryInterceptor(
-			spanInterceptor.Unary,                // OTel first
-			promInterceptor.Unary,                // Prometheus
-			logInterceptor.Unary,                 // Logging
-			sessionInterceptor,                   // Session management
-			requestIDInterceptor,                 // Request ID injection
-			recoveryInterceptor.Unary,            // Recovery from panics
+			spanInterceptor.Unary,     // OTel first
+			promInterceptor.Unary,     // Prometheus
+			logInterceptor.Unary,      // Logging
+			sessionInterceptor,        // Session management
+			requestIDInterceptor,      // Request ID injection
+			recoveryInterceptor.Unary, // Recovery from panics
+
 			rateLimiter.UnaryServerInterceptor(), // Basic rate limiting
 		),
 
