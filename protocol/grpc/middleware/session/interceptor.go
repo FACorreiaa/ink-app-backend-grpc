@@ -24,9 +24,9 @@ func InterceptorSession() grpc.UnaryServerInterceptor {
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
 		unauthenticatedMethods := map[string]bool{
-			"/inkMe.auth.Auth/Register":    true,
-			"/inkMe.auth.Auth/Login":       true,
-			"/inkMe.auth.Auth/GetAllUsers": true,
+			"/inkMe.studio.AuthService/Register":    true,
+			"/inkMe.studio.AuthService/Login":       true,
+			"/inkMe.studio.AuthService/GetAllUsers": true,
 		}
 		if unauthenticatedMethods[info.FullMethod] {
 			return handler(ctx, req)

@@ -14,15 +14,15 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// StudioAuthRepository handles database operations for studio authentication
-type StudioAuthRepository struct {
+// AuthRepository handles database operations for studio authentication
+type AuthRepository struct {
 	DBManager    *config.TenantDBManager
 	RedisManager *config.TenantRedisManager
 }
 
-// NewStudioAuthRepository creates a new StudioAuthRepository
-func NewStudioAuthRepository(dbManager *config.TenantDBManager, redisManager *config.TenantRedisManager) *StudioAuthRepository {
-	return &StudioAuthRepository{
+// NewAuthRepository creates a new AuthRepository
+func NewAuthRepository(dbManager *config.TenantDBManager, redisManager *config.TenantRedisManager) *AuthRepository {
+	return &AuthRepository{
 		DBManager:    dbManager,
 		RedisManager: redisManager,
 	}
@@ -66,7 +66,7 @@ func generateSessionKey(tenant, sessionID string) string {
 }
 
 // Login authenticates a user and returns an access token
-func (r *StudioAuthRepository) Login(ctx context.Context, tenant, email, password string) (string, string, error) {
+func (r *AuthRepository) Login(ctx context.Context, tenant, email, password string) (string, string, error) {
 	if tenant == "" {
 		return "", "", errors.New("tenant subdomain is required")
 	}
@@ -116,7 +116,7 @@ func (r *StudioAuthRepository) Login(ctx context.Context, tenant, email, passwor
 }
 
 // SignOut invalidates a user session
-func (r *StudioAuthRepository) Logout(ctx context.Context, tenant, sessionID string) error {
+func (r *AuthRepository) Logout(ctx context.Context, tenant, sessionID string) error {
 	// Delete from Redis
 	sessionKey := generateSessionKey(tenant, sessionID)
 
@@ -150,7 +150,7 @@ func (r *StudioAuthRepository) Logout(ctx context.Context, tenant, sessionID str
 }
 
 // GetSession retrieves a user session
-func (r *StudioAuthRepository) GetSession(ctx context.Context, tenant, sessionID string) (*domain.StudioSession, error) {
+func (r *AuthRepository) GetSession(ctx context.Context, tenant, sessionID string) (*domain.StudioSession, error) {
 	// Try to get from Redis first
 	sessionKey := generateSessionKey(tenant, sessionID)
 
@@ -222,7 +222,7 @@ func (r *StudioAuthRepository) GetSession(ctx context.Context, tenant, sessionID
 }
 
 // GetUserByEmail retrieves a user by email
-func (r *StudioAuthRepository) GetUserByEmail(ctx context.Context, tenant, email string) (string, string, string, error) {
+func (r *AuthRepository) GetUserByEmail(ctx context.Context, tenant, email string) (string, string, string, error) {
 	// Get tenant-specific database pool
 	pool, err := r.DBManager.GetTenantDB(tenant)
 	if err != nil {
@@ -241,7 +241,7 @@ func (r *StudioAuthRepository) GetUserByEmail(ctx context.Context, tenant, email
 }
 
 // ValidateCredentials validates user credentials
-func (r *StudioAuthRepository) ValidateCredentials(ctx context.Context, tenant, email, password string) (bool, error) {
+func (r *AuthRepository) ValidateCredentials(ctx context.Context, tenant, email, password string) (bool, error) {
 	// Get tenant-specific database pool
 	pool, err := r.DBManager.GetTenantDB(tenant)
 	if err != nil {
@@ -260,7 +260,7 @@ func (r *StudioAuthRepository) ValidateCredentials(ctx context.Context, tenant, 
 	return err == nil, nil
 }
 
-func (r *StudioAuthRepository) RefreshSession(ctx context.Context, tenant, refreshToken string) (string, string, error) {
+func (r *AuthRepository) RefreshSession(ctx context.Context, tenant, refreshToken string) (string, string, error) {
 	if tenant == "" {
 		return "", "", errors.New("tenant subdomain is required")
 	}
@@ -317,7 +317,7 @@ func (r *StudioAuthRepository) RefreshSession(ctx context.Context, tenant, refre
 }
 
 // Register creates a new user in the tenant's database
-func (r *StudioAuthRepository) Register(ctx context.Context, tenant, username, email, password, role string) error {
+func (r *AuthRepository) Register(ctx context.Context, tenant, username, email, password, role string) error {
 	if tenant == "" {
 		return errors.New("tenant subdomain is required")
 	}
@@ -351,7 +351,7 @@ func (r *StudioAuthRepository) Register(ctx context.Context, tenant, username, e
 }
 
 // ChangePassword updates a user's password
-func (r *StudioAuthRepository) ChangePassword(ctx context.Context, tenant, email, oldPassword, newPassword string) error {
+func (r *AuthRepository) ChangePassword(ctx context.Context, tenant, email, oldPassword, newPassword string) error {
 	if tenant == "" {
 		return errors.New("tenant subdomain is required")
 	}
@@ -398,7 +398,7 @@ func (r *StudioAuthRepository) ChangePassword(ctx context.Context, tenant, email
 }
 
 // ChangeEmail updates a user's email
-func (r *StudioAuthRepository) ChangeEmail(ctx context.Context, tenant, email, password, newEmail string) error {
+func (r *AuthRepository) ChangeEmail(ctx context.Context, tenant, email, password, newEmail string) error {
 	if tenant == "" {
 		return errors.New("tenant subdomain is required")
 	}
@@ -431,7 +431,7 @@ func (r *StudioAuthRepository) ChangeEmail(ctx context.Context, tenant, email, p
 	return nil
 }
 
-func (r *StudioAuthRepository) ValidateSession(ctx context.Context, tenant, sessionID string) (bool, error) {
+func (r *AuthRepository) ValidateSession(ctx context.Context, tenant, sessionID string) (bool, error) {
 	pool, err := r.DBManager.GetTenantDB(tenant)
 	if err != nil {
 		return false, fmt.Errorf("invalid tenant: %w", err)
@@ -452,7 +452,7 @@ func (r *StudioAuthRepository) ValidateSession(ctx context.Context, tenant, sess
 	return true, nil
 }
 
-func (r *StudioAuthRepository) GetUserByID(ctx context.Context, tenant, userID string) (*domain.User, error) {
+func (r *AuthRepository) GetUserByID(ctx context.Context, tenant, userID string) (*domain.User, error) {
 	pool, err := r.DBManager.GetTenantDB(tenant)
 	if err != nil {
 		return nil, fmt.Errorf("invalid tenant: %w", err)
@@ -473,18 +473,18 @@ func (r *StudioAuthRepository) GetUserByID(ctx context.Context, tenant, userID s
 	return &user, nil
 }
 
-func (r *StudioAuthRepository) GetAllUsers(ctx context.Context, tenant string) ([]*domain.User, error) {
+func (r *AuthRepository) GetAllUsers(ctx context.Context, tenant string) ([]*domain.User, error) {
 	return nil, nil
 }
 
-func (r *StudioAuthRepository) UpdateUser(ctx context.Context, tenant string, user *domain.User) error {
+func (r *AuthRepository) UpdateUser(ctx context.Context, tenant string, user *domain.User) error {
 	return nil
 }
 
-func (r *StudioAuthRepository) InsertUser(ctx context.Context, tenant string, user *domain.User) error {
+func (r *AuthRepository) InsertUser(ctx context.Context, tenant string, user *domain.User) error {
 	return nil
 }
 
-func (r *StudioAuthRepository) DeleteUser(ctx context.Context, tenant, userID string) error {
+func (r *AuthRepository) DeleteUser(ctx context.Context, tenant, userID string) error {
 	return nil
 }

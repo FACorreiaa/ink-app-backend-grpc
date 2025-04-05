@@ -55,8 +55,8 @@ func BootstrapServer(
 	sessionInterceptor := session.InterceptorSession()
 	requestIDInterceptor := grpcrequest.RequestIDMiddleware()
 	// Simple rate limiter for demonstration (10 requests/sec, 20 burst).
-	rateLimiter := grpcratelimit.NewRateLimiter(10, 20)
-
+	// rateLimiter := grpcratelimit.NewRateLimiter(10, 20)
+	rateLimiter := grpcratelimit.RateLimiterInterceptor()
 	//tenantInterceptor := grpctenant.TenantInterceptor(grpctenant.SimpleTenantValidator())
 	// Base gRPC server options.
 	serverOptions := []grpc.ServerOption{
@@ -73,7 +73,8 @@ func BootstrapServer(
 			requestIDInterceptor,      // Request ID injection
 			recoveryInterceptor.Unary, // Recovery from panics
 
-			rateLimiter.UnaryServerInterceptor(), // Basic rate limiting
+			//rateLimiter.UnaryServerInterceptor(), // Basic rate limiting
+			rateLimiter,
 		),
 
 		// Chain all stream interceptors.

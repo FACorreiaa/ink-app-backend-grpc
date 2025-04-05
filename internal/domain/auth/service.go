@@ -20,7 +20,8 @@ import (
 // StudioAuthService implements the gRPC server
 type StudioAuthService struct {
 	ups.UnimplementedAuthServiceServer
-	repo domain.StudioAuthRepository
+	repo     domain.StudioAuthRepository
+	userRepo domain.UserRepository
 }
 
 // NewStudioAuthService creates a new StudioAuthService
@@ -151,12 +152,12 @@ func (s *StudioAuthService) ChangePassword(ctx context.Context, req *ups.ChangeP
 	}
 
 	// Fetch email by username
-	_, _, _, err = s.repo.GetUserByEmail(ctx, tenant, req.Username) // Assuming username can be email
+	_, _, _, err = s.userRepo.GetUserByEmail(ctx, tenant, req.Username) // Assuming username can be email
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "user not found: %v", err)
 	}
 
-	err = s.repo.ChangePassword(ctx, tenant, req.Username, req.OldPassword, req.NewPassword)
+	err = s.userRepo.ChangePassword(ctx, tenant, req.Username, req.OldPassword, req.NewPassword)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "failed to change password: %v", err)
 	}
@@ -176,12 +177,12 @@ func (s *StudioAuthService) ChangeEmail(ctx context.Context, req *ups.ChangeEmai
 	}
 
 	// Fetch current email by username
-	_, _, _, err = s.repo.GetUserByEmail(ctx, tenant, req.Username)
+	_, _, _, err = s.userRepo.GetUserByEmail(ctx, tenant, req.Username)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "user not found: %v", err)
 	}
 
-	err = s.repo.ChangeEmail(ctx, tenant, req.Username, req.Password, req.NewEmail)
+	err = s.userRepo.ChangeEmail(ctx, tenant, req.Username, req.Password, req.NewEmail)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "failed to change email: %v", err)
 	}
