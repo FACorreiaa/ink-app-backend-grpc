@@ -91,18 +91,18 @@ func NewStudioRepository(dbManager *config.TenantDBManager, redisManager *config
 }
 
 // Claims defines JWT claims
-type Claims struct {
-	UserID   string `json:"user_id"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Tenant   string `json:"tenant"`
-	Role     string `json:"role"`
-	jwt.RegisteredClaims
-}
+//type Claims struct {
+//	UserID   string `json:"user_id"`
+//	Username string `json:"username"`
+//	Email    string `json:"email"`
+//	Tenant   string `json:"tenant"`
+//	Role     string `json:"role"`
+//	jwt.RegisteredClaims
+//}
 
 // generateAccessToken creates a JWT access token
 func generateAccessToken(userID, username, email, tenant, role string) (string, error) {
-	claims := Claims{
+	claims := domain.Claims{
 		UserID:   userID,
 		Username: username,
 		Email:    email,

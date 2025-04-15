@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/config"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -29,18 +31,19 @@ func NewAuthRepository(dbManager *config.TenantDBManager, redisManager *config.T
 }
 
 // Claims defines JWT claims
-type Claims struct {
-	UserID   string `json:"user_id"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Tenant   string `json:"tenant"`
-	Role     string `json:"role"`
-	jwt.RegisteredClaims
-}
+//type Claims struct {
+//	UserID   string `json:"user_id"`
+//	Username string `json:"username"`
+//	Email    string `json:"email"`
+//	Tenant   string `json:"tenant"`
+//	Role     string `json:"role"`
+//	jwt.RegisteredClaims
+//}
 
 // generateAccessToken creates a JWT access token
 func generateAccessToken(userID, username, email, tenant, role string) (string, error) {
-	claims := Claims{
+	log.Printf("!!! DEBUG generateAccessToken: Received userID = '%s'\n", userID)
+	claims := domain.Claims{
 		UserID:   userID,
 		Username: username,
 		Email:    email,
@@ -76,20 +79,15 @@ func (r *AuthRepository) Login(ctx context.Context, tenant, email, password stri
 		return "", "", fmt.Errorf("invalid tenant: %w", err)
 	}
 
-	var user struct {
-		ID       string
-		Username string
-		Email    string
-		Password string
-		Role     string
-	}
-
+	var user domain.User
 	err = pool.QueryRow(ctx,
 		"SELECT id, username, email, hashed_password, role FROM users WHERE email = $1",
 		email).Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.Role)
 	if err != nil {
 		return "", "", fmt.Errorf("user not found: %w", err)
 	}
+
+	log.Printf("!!! DEBUG Login Repo: After Scan - user.ID = '%s'\n", user.ID)
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
@@ -117,36 +115,37 @@ func (r *AuthRepository) Login(ctx context.Context, tenant, email, password stri
 
 // SignOut invalidates a user session
 func (r *AuthRepository) Logout(ctx context.Context, tenant, sessionID string) error {
-	// Delete from Redis
-	sessionKey := generateSessionKey(tenant, sessionID)
+	// // Delete from Redis
+	// sessionKey := generateSessionKey(tenant, sessionID)
 
-	// Get tenant DB to update session record
-	pool, err := r.DBManager.GetTenantDB(tenant)
-	if err != nil {
-		return fmt.Errorf("invalid tenant: %w", err)
-	}
+	// // Get tenant DB to update session record
+	// pool, err := r.DBManager.GetTenantDB(tenant)
+	// if err != nil {
+	// 	return fmt.Errorf("invalid tenant: %w", err)
+	// }
 
-	redis, err := r.RedisManager.GetTenantRedis(tenant)
-	if err != nil {
-		return fmt.Errorf("invalid tenant: %w", err)
-	}
+	// redis, err := r.RedisManager.GetTenantRedis(tenant)
+	// if err != nil {
+	// 	return fmt.Errorf("invalid tenant: %w", err)
+	// }
 
-	err = redis.Del(ctx, sessionKey).Err()
-	if err != nil {
-		return fmt.Errorf("failed to delete session from cache: %w", err)
-	}
+	// err = redis.Del(ctx, sessionKey).Err()
+	// if err != nil {
+	// 	return fmt.Errorf("failed to delete session from cache: %w", err)
+	// }
 
-	// Mark session as invalidated in database
-	_, err = pool.Exec(ctx,
-		"UPDATE sessions SET invalidated_at = $1 WHERE session_id = $2",
-		time.Now(), sessionID)
-	// We don't return this error as the primary operation (Redis delete) succeeded
-	if err != nil {
-		// Log error but don't fail the operation
-		fmt.Printf("Warning: Failed to update session record: %v\n", err)
-	}
+	// // Mark session as invalidated in database
+	// _, err = pool.Exec(ctx,
+	// 	"UPDATE sessions SET invalidated_at = $1 WHERE session_id = $2",
+	// 	time.Now(), sessionID)
+	// // We don't return this error as the primary operation (Redis delete) succeeded
+	// if err != nil {
+	// 	// Log error but don't fail the operation
+	// 	fmt.Printf("Warning: Failed to update session record: %v\n", err)
+	// }
 
-	return nil
+	// return nil
+	return r.InvalidateRefreshToken(ctx, tenant, sessionID)
 }
 
 // GetSession retrieves a user session
@@ -473,18 +472,154 @@ func (r *AuthRepository) GetUserByID(ctx context.Context, tenant, userID string)
 	return &user, nil
 }
 
-func (r *AuthRepository) GetAllUsers(ctx context.Context, tenant string) ([]*domain.User, error) {
-	return nil, nil
-}
+func (r *AuthRepository) StoreRefreshToken(ctx context.Context, tenant, userID, token string, expiresAt time.Time) error {
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return fmt.Errorf("store refresh token: invalid tenant: %w", err)
+	}
 
-func (r *AuthRepository) UpdateUser(ctx context.Context, tenant string, user *domain.User) error {
+	_, err = pool.Exec(ctx,
+		`INSERT INTO refresh_tokens (user_id, token, expires_at)
+         VALUES ($1, $2, $3)`,
+		userID, token, expiresAt)
+	if err != nil {
+		return fmt.Errorf("store refresh token: db insert failed: %w", err)
+	}
 	return nil
 }
 
-func (r *AuthRepository) InsertUser(ctx context.Context, tenant string, user *domain.User) error {
+func (r *AuthRepository) GetSessionInfoFromRefreshToken(ctx context.Context, tenant, refreshToken string) (string, time.Time, *time.Time, error) {
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return "", time.Time{}, nil, fmt.Errorf("get session info: invalid tenant: %w", err)
+	}
+
+	var userID string
+	var expiresAt time.Time
+	var invalidatedAt *time.Time // Use pointer for nullable timestamp
+
+	err = pool.QueryRow(ctx,
+		`SELECT user_id, expires_at, revoked_at
+         FROM refresh_tokens
+         WHERE token = $1`, refreshToken).Scan(&userID, &expiresAt, &invalidatedAt)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", time.Time{}, nil, errors.New("invalid refresh token")
+		}
+		return "", time.Time{}, nil, fmt.Errorf("get session info: query failed: %w", err)
+	}
+
+	return userID, expiresAt, invalidatedAt, nil
+}
+
+func (r *AuthRepository) InvalidateRefreshToken(ctx context.Context, tenant, refreshToken string) error {
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return fmt.Errorf("invalidate refresh token: invalid tenant: %w", err)
+	}
+
+	tag, err := pool.Exec(ctx,
+		`UPDATE refresh_tokens SET revoked_at = $1
+         WHERE token = $2 AND revoked_at IS NULL`,
+		time.Now(), refreshToken)
+
+	if err != nil {
+		return fmt.Errorf("invalidate refresh token: db update failed: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		// Token was already revoked or didn't exist, not necessarily an error for logout
+		// but could be logged.
+		fmt.Printf("Warning: No refresh token found or already revoked for token: %s\n", refreshToken)
+	}
 	return nil
 }
 
-func (r *AuthRepository) DeleteUser(ctx context.Context, tenant, userID string) error {
+func (r *AuthRepository) InvalidateAllUserRefreshTokens(ctx context.Context, tenant, userID string) error {
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return fmt.Errorf("invalidate all tokens: invalid tenant: %w", err)
+	}
+
+	_, err = pool.Exec(ctx,
+		`UPDATE refresh_tokens SET revoked_at = $1
+		 WHERE user_id = $2 AND revoked_at IS NULL`,
+		time.Now(), userID)
+	if err != nil {
+		return fmt.Errorf("invalidate all tokens: db update failed: %w", err)
+	}
+	// Log how many were invalidated?
 	return nil
+}
+
+func (r *AuthRepository) GetStudioIDByTenant(ctx context.Context, tenant string) (string, error) {
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return "", fmt.Errorf("get studio id: invalid tenant: %w", err)
+	}
+	var studioID string
+	err = pool.QueryRow(ctx, "SELECT id FROM studios WHERE subdomain = $1", tenant).Scan(&studioID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", fmt.Errorf("studio not found for tenant %s", tenant)
+		}
+		return "", fmt.Errorf("get studio id: query failed: %w", err)
+	}
+	return studioID, nil
+}
+
+func (r *AuthRepository) VerifyPassword(ctx context.Context, tenant, userID, password string) error {
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return fmt.Errorf("verify password: invalid tenant: %w", err)
+	}
+
+	var hashedPassword string
+	err = pool.QueryRow(ctx, "SELECT hashed_password FROM users WHERE id = $1", userID).Scan(&hashedPassword)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return errors.New("user not found")
+		}
+		return fmt.Errorf("verify password: query failed: %w", err)
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	if err != nil {
+		return errors.New("invalid password")
+	}
+	return nil
+}
+
+func (r *AuthRepository) UpdatePassword(ctx context.Context, tenant, userID, newHashedPassword string) error {
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return fmt.Errorf("update password: invalid tenant: %w", err)
+	}
+
+	tag, err := pool.Exec(ctx,
+		`UPDATE users SET hashed_password = $1, updated_at = $2 WHERE id = $3`,
+		newHashedPassword, time.Now(), userID)
+	if err != nil {
+		return fmt.Errorf("update password: db update failed: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return errors.New("user not found or password unchanged") // Or specific domain error
+	}
+	return nil
+}
+
+func (r *AuthRepository) GetUserRole(ctx context.Context, tenant, userID string) (string, error) {
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return "", fmt.Errorf("get user role: invalid tenant: %w", err)
+	}
+	var role string
+	err = pool.QueryRow(ctx, "SELECT role FROM users WHERE id = $1", userID).Scan(&role)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", errors.New("user not found")
+		}
+		return "", fmt.Errorf("get user role: query failed: %w", err)
+	}
+	return role, nil
 }

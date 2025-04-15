@@ -2,6 +2,7 @@ package session
 
 import (
 	"context"
+	"log"
 
 	"github.com/golang-jwt/jwt/v5"
 	"google.golang.org/grpc"
@@ -54,15 +55,15 @@ func InterceptorSession() grpc.UnaryServerInterceptor {
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 			return domain.JwtSecretKey, nil
 		})
+		log.Printf("!!! DEBUG Interceptor: Token Parsed. Claims Struct: %+v\n", claims)
+		log.Printf("!!! DEBUG Interceptor: Value being put into context for key 'userID': '%s'\n", claims.UserID)
+
 		if err != nil || !token.Valid {
 			return nil, status.Error(codes.Unauthenticated, "invalid or expired token")
 		}
 
-		ctx = context.WithValue(ctx, "userID", claims.UserID)
+		ctx = context.WithValue(ctx, "user_id", claims.UserID)
 		ctx = context.WithValue(ctx, "role", claims.Role)
-		// change this to studioID
-		ctx = context.WithValue(ctx, "studioID", claims.StudioID)
-		ctx = context.WithValue(ctx, "scope", claims.Scope)
 
 		return handler(ctx, req)
 	}

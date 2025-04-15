@@ -7,6 +7,10 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
+type contextKey string
+
+const UserClaimsKey contextKey = "user_claims"
+
 // type AuthRepository interface {
 // 	Register(ctx context.Context, req *upb.RegisterRequest) (*upb.RegisterResponse, error)
 // 	Login(ctx context.Context, req *upb.LoginRequest) (*upb.LoginResponse, error)
@@ -143,15 +147,15 @@ type StaffMember struct {
 }
 
 type User struct {
-	ID           string
-	Username     string
-	Email        string
-	PasswordHash string
-	Role         string // "owner", "staff", "customer", etc.
-	StudioID     string // Which studio they belong to (if applicable)
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	DeletedAt    *time.Time
+	ID        string
+	Username  string
+	Email     string
+	Password  string
+	Role      string // "owner", "staff", "customer", etc.
+	StudioID  string // Which studio they belong to (if applicable)
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time
 }
 
 type CustomerRepository interface {
@@ -189,6 +193,10 @@ type StudioAuthRepository interface {
 	Register(ctx context.Context, tenant, username, email, password, role string) error
 	ValidateCredentials(ctx context.Context, tenant, email, password string) (bool, error)
 	ValidateSession(ctx context.Context, tenant, sessionID string) (bool, error)
+	GetUserRole(ctx context.Context, tenant, actingAdminID string) (string, error)
+	VerifyPassword(ctx context.Context, tenant, userID, password string) error
+	UpdatePassword(ctx context.Context, tenant, userID, newHashedPassword string) error
+	InvalidateAllUserRefreshTokens(ctx context.Context, tenant, userID string) error
 }
 
 type StudioRepository interface {

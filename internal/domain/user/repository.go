@@ -91,3 +91,19 @@ func (r *UserRepository) ChangeEmail(ctx context.Context, tenant, email, passwor
 
 	return nil
 }
+
+// func (r *AuthRepository) GetAllUsers(ctx context.Context, tenant string) ([]*domain.User, error) {
+// 	return nil, nil
+// }
+
+// func (r *AuthRepository) UpdateUser(ctx context.Context, tenant string, user *domain.User) error {
+// 	return nil
+// }
+
+// func (r *AuthRepository) InsertUser(ctx context.Context, tenant string, user *domain.User) error {
+// 	return nil
+// }
+
+// func (r *AuthRepository) DeleteUser(ctx context.Context, tenant, userID string) error {
+// 	return nil
+// }
