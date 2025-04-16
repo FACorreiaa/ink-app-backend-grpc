@@ -59,16 +59,18 @@ func extractTenantFromContext(ctx context.Context) (string, error) {
 }
 
 func getAuthenticatedUserID(ctx context.Context) (string, error) {
-	value := ctx.Value("user_id")
+	// ---> Use the typed key from the domain package <---
+	value := ctx.Value(domain.UserIDKey)
+
 	if value == nil {
-		log.Println("getAuthenticatedUserID: Context value for key 'userID' is nil (key not found)") // DEBUG LOG
+		log.Println("getAuthenticatedUserID: Context value for key 'UserIDKey' is nil (key not found)")
 		return "", status.Error(codes.Unauthenticated, "authentication claims missing from context (key not found)")
 	}
 
 	userID, ok := value.(string)
 	if !ok {
-		log.Printf("getAuthenticatedUserID: Context value for key 'userID' is not a string. Type is %T\n", value) // DEBUG LOG
-		return "", status.Error(codes.Internal, "invalid authentication claim type in context")                   // Internal error because interceptor messed up
+		log.Printf("getAuthenticatedUserID: Context value for key 'UserIDKey' is not a string. Type is %T\n", value)
+		return "", status.Error(codes.Internal, "invalid authentication claim type in context")
 	}
 
 	if userID == "" {

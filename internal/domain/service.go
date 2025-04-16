@@ -7,6 +7,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+type contextKey string
+
+const UserIDKey contextKey = "user_id"
+const RoleKey contextKey = "role"
+
 type Claims struct {
 	UserID   string `json:"user_id"`
 	Username string `json:"username"`

@@ -7,10 +7,6 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
-type contextKey string
-
-const UserClaimsKey contextKey = "user_claims"
-
 // type AuthRepository interface {
 // 	Register(ctx context.Context, req *upb.RegisterRequest) (*upb.RegisterResponse, error)
 // 	Login(ctx context.Context, req *upb.LoginRequest) (*upb.LoginResponse, error)
