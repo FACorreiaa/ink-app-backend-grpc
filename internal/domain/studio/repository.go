@@ -117,8 +117,8 @@ func generateAccessToken(userID, username, email, tenant, role string) (string, 
 	return token.SignedString(domain.JwtSecretKey) // Assume JwtSecretKey is a global secret
 }
 
-// GetUserByEmail retrieves a user by email
-//func (r *StudioAuthRepository) GetUserByEmail(ctx context.Context, tenant, email string) (string, string, string, error) {
+// GetUserByID retrieves a user by email
+//func (r *StudioAuthRepository) GetUserByID(ctx context.Context, tenant, email string) (string, string, string, error) {
 //	// Get tenant-specific database pool
 //	pool, err := r.DBManager.GetTenantDB(tenant)
 //	if err != nil {

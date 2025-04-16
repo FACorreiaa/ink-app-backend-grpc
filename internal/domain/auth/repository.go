@@ -220,24 +220,7 @@ func (r *AuthRepository) GetSession(ctx context.Context, tenant, sessionID strin
 	return &userSession, nil
 }
 
-// GetUserByEmail retrieves a user by email
-func (r *AuthRepository) GetUserByEmail(ctx context.Context, tenant, email string) (string, string, string, error) {
-	// Get tenant-specific database pool
-	pool, err := r.DBManager.GetTenantDB(tenant)
-	if err != nil {
-		return "", "", "", fmt.Errorf("invalid tenant: %w", err)
-	}
-
-	var id, username, role string
-	err = pool.QueryRow(ctx,
-		"SELECT id, username, role FROM users WHERE email = $1",
-		email).Scan(&id, &username, &role)
-	if err != nil {
-		return "", "", "", fmt.Errorf("user not found: %w", err)
-	}
-
-	return id, username, role, nil
-}
+// GetUserByID retrieves a user by email
 
 // ValidateCredentials validates user credentials
 func (r *AuthRepository) ValidateCredentials(ctx context.Context, tenant, email, password string) (bool, error) {

@@ -23,13 +23,13 @@ import (
 // StudioAuthService implements the gRPC server
 type StudioAuthService struct {
 	pb.UnimplementedAuthServiceServer
-	repo     domain.StudioAuthRepository
+	authRepo domain.StudioAuthRepository
 	userRepo domain.UserRepository
 }
 
 // NewStudioAuthService creates a new StudioAuthService
-func NewStudioAuthService(repo domain.StudioAuthRepository) *StudioAuthService {
-	return &StudioAuthService{repo: repo}
+func NewStudioAuthService(authRepo domain.StudioAuthRepository, userRepo domain.UserRepository) *StudioAuthService {
+	return &StudioAuthService{authRepo: authRepo, userRepo: userRepo}
 }
 
 // extractTenantFromContext extracts tenant from gRPC metadata
@@ -92,7 +92,7 @@ func (s *StudioAuthService) Register(ctx context.Context, req *pb.RegisterReques
 		return nil, status.Error(codes.InvalidArgument, "all fields are required")
 	}
 
-	err = s.repo.Register(ctx, tenant, req.Username, req.Email, req.Password, req.Role)
+	err = s.authRepo.Register(ctx, tenant, req.Username, req.Email, req.Password, req.Role)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to register user: %v", err)
 	}
@@ -112,7 +112,7 @@ func (s *StudioAuthService) Login(ctx context.Context, req *pb.LoginRequest) (*p
 		return nil, status.Errorf(codes.InvalidArgument, "invalid login request: %v", err)
 	}
 
-	accessToken, newRefreshToken, err := s.repo.Login(ctx, tenant, req.Email, req.Password)
+	accessToken, newRefreshToken, err := s.authRepo.Login(ctx, tenant, req.Email, req.Password)
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "authentication failed: %v", err)
 	}
@@ -136,7 +136,7 @@ func (s *StudioAuthService) Logout(ctx context.Context, req *pb.LogoutRequest) (
 	}
 
 	// Assuming session_id is the refresh token
-	err = s.repo.Logout(ctx, tenant, req.SessionId)
+	err = s.authRepo.Logout(ctx, tenant, req.SessionId)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to logout: %v", err)
 	}
@@ -157,7 +157,7 @@ func (s *StudioAuthService) RefreshToken(ctx context.Context, req *pb.RefreshTok
 		return nil, status.Error(codes.InvalidArgument, "refresh token required")
 	}
 
-	newAccessToken, newRefreshToken, err := s.repo.RefreshSession(ctx, tenant, req.RefreshToken)
+	newAccessToken, newRefreshToken, err := s.authRepo.RefreshSession(ctx, tenant, req.RefreshToken)
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "invalid refresh token: %v", err)
 	}
@@ -175,12 +175,17 @@ func (s *StudioAuthService) ChangePassword(ctx context.Context, req *pb.ChangePa
 		return nil, err
 	}
 
+	actingUserID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	if req.Username == "" || req.OldPassword == "" || req.NewPassword == "" {
 		return nil, status.Error(codes.InvalidArgument, "all fields required")
 	}
 
 	// Fetch email by username
-	_, _, _, err = s.userRepo.GetUserByEmail(ctx, tenant, req.Username) // Assuming username can be email
+	_, err = s.userRepo.GetUserByID(ctx, tenant, actingUserID) // Assuming username can be email
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "user not found: %v", err)
 	}
@@ -194,26 +199,92 @@ func (s *StudioAuthService) ChangePassword(ctx context.Context, req *pb.ChangePa
 }
 
 // ChangeEmail updates a user's email
+// func (s *StudioAuthService) ChangeEmail(ctx context.Context, req *pb.ChangeEmailRequest) (*pb.ChangeEmailResponse, error) {
+// 	tenant, err := extractTenantFromContext(ctx)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	actingUserID, err := getAuthenticatedUserID(ctx)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	if req.Username == "" || req.Password == "" || req.NewEmail == "" {
+// 		return nil, status.Error(codes.InvalidArgument, "all fields required")
+// 	}
+
+// 	// Fetch current email by username
+// 	_, err = s.userRepo.GetUserByID(ctx, tenant, actingUserID)
+// 	if err != nil {
+// 		return nil, status.Errorf(codes.NotFound, "user not found: %v", err)
+// 	}
+
+// 	err = s.authRepo.ChangeEmail(ctx, tenant, req.Username, req.Password, req.NewEmail)
+// 	if err != nil {
+// 		return nil, status.Errorf(codes.InvalidArgument, "failed to change email: %v", err)
+// 	}
+
+// 	return &pb.ChangeEmailResponse{Message: "Email changed successfully"}, nil
+// }
+
 func (s *StudioAuthService) ChangeEmail(ctx context.Context, req *pb.ChangeEmailRequest) (*pb.ChangeEmailResponse, error) {
 	tenant, err := extractTenantFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	if req.Username == "" || req.Password == "" || req.NewEmail == "" {
-		return nil, status.Error(codes.InvalidArgument, "all fields required")
+	// 1. Get the ID of the user making the request from the context
+	actingUserID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		// This means the token was invalid or missing
+		return nil, err
 	}
 
-	// Fetch current email by username
-	_, _, _, err = s.userRepo.GetUserByEmail(ctx, tenant, req.Username)
+	// 2. Validate Inputs
+	// Note: We don't need req.Username if we use the actingUserID from the token.
+	// The request should probably contain current_password and new_email.
+	// Adjust proto definition if needed. Let's assume req.Password is the current password.
+	if req.Password == "" || req.NewEmail == "" {
+		return nil, status.Error(codes.InvalidArgument, "current password and new email are required")
+	}
+	// Add email format validation for req.NewEmail
+
+	// 3. Verify the user's *current* password
+	// We use actingUserID obtained securely from the token/context
+	err = s.authRepo.VerifyPassword(ctx, tenant, actingUserID, req.Password)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "user not found: %v", err)
+		log.Printf("ChangeEmail: Password verification failed for user %s, tenant %s: %v\n", actingUserID, tenant, err)
+		if err.Error() == "invalid password" { // Check for specific error if repo returns it
+			return nil, status.Error(codes.Unauthenticated, "invalid current password")
+		}
+		// Check if userRepo.VerifyPassword can return "user not found"
+		if err.Error() == "user not found" {
+			return nil, status.Error(codes.NotFound, "authenticated user not found during password verification")
+		}
+		return nil, status.Errorf(codes.Internal, "failed to verify password: %v", err)
 	}
 
-	err = s.userRepo.ChangeEmail(ctx, tenant, req.Username, req.Password, req.NewEmail)
+	// 4. Call the CORRECT repository method to update the email
+	// This method should exist on the UserRepository interface and implementation
+	err = s.userRepo.UpdateEmail(ctx, tenant, actingUserID, req.NewEmail)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "failed to change email: %v", err)
+		// Log the detailed error
+		log.Printf("ChangeEmail: Failed to update email for user %s, tenant %s: %v\n", actingUserID, tenant, err)
+		// Check for specific errors, e.g., if the new email is already taken (unique constraint)
+		// if isUniqueConstraintError(err) { // Implement this check based on DB driver
+		//     return nil, status.Error(codes.AlreadyExists, "new email address is already in use")
+		// }
+		// Check if UpdateEmail can return "user not found" (shouldn't if VerifyPassword succeeded, but good practice)
+		if err.Error() == "user not found" { // Or however your repo signals this
+			return nil, status.Error(codes.NotFound, "user not found during email update")
+		}
+		return nil, status.Errorf(codes.Internal, "failed to update email: %v", err) // Generic internal error
 	}
+
+	// Optional: Invalidate refresh tokens as email change might warrant re-login
+	// err = s.authRepo.InvalidateAllUserRefreshTokens(ctx, tenant, actingUserID)
+	// if err != nil { log.Printf(...) }
 
 	return &pb.ChangeEmailResponse{Message: "Email changed successfully"}, nil
 }
@@ -232,7 +303,7 @@ func (s *StudioAuthService) ValidateSession(ctx context.Context, req *pb.Validat
 	}
 
 	// Get session
-	session, err := s.repo.GetSession(ctx, tenant, req.SessionId)
+	session, err := s.authRepo.GetSession(ctx, tenant, req.SessionId)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, "invalid or expired session")
 	}
@@ -267,7 +338,7 @@ func (s *StudioAuthService) ChangeOwnPassword(ctx context.Context, req *pb.Chang
 	// Add complexity checks for req.NewPassword
 
 	// 1. Verify the old password
-	err = s.repo.VerifyPassword(ctx, tenant, actingUserID, req.OldPassword)
+	err = s.authRepo.VerifyPassword(ctx, tenant, actingUserID, req.OldPassword)
 	if err != nil {
 		// Log the specific internal error if needed
 		return nil, status.Errorf(codes.Unauthenticated, "invalid old password") // Don't reveal too much
@@ -281,14 +352,14 @@ func (s *StudioAuthService) ChangeOwnPassword(ctx context.Context, req *pb.Chang
 	}
 
 	// 3. Update the password in the repository
-	err = s.repo.UpdatePassword(ctx, tenant, actingUserID, string(newHashedPassword))
+	err = s.authRepo.UpdatePassword(ctx, tenant, actingUserID, string(newHashedPassword))
 	if err != nil {
 		fmt.Printf("Error updating password for user %s, tenant %s: %v\n", actingUserID, tenant, err)
 		return nil, status.Errorf(codes.Internal, "failed to update password: %v", err)
 	}
 
 	// 4. Invalidate refresh tokens for security
-	err = s.repo.InvalidateAllUserRefreshTokens(ctx, tenant, actingUserID)
+	err = s.authRepo.InvalidateAllUserRefreshTokens(ctx, tenant, actingUserID)
 	if err != nil {
 		fmt.Printf("Warning: Failed to invalidate refresh tokens for user %s after password change, tenant %s: %v\n", actingUserID, tenant, err)
 	}
@@ -319,7 +390,7 @@ func (s *StudioAuthService) AdminResetUserPassword(ctx context.Context, req *pb.
 
 	// 1. Verify the acting user is an admin
 	// You might fetch the acting user's role or have it in claims
-	actingUserRole, err := s.repo.GetUserRole(ctx, tenant, actingAdminID)
+	actingUserRole, err := s.authRepo.GetUserRole(ctx, tenant, actingAdminID)
 	if err != nil {
 		fmt.Printf("Error fetching role for admin %s, tenant %s: %v\n", actingAdminID, tenant, err)
 		return nil, status.Errorf(codes.Internal, "failed to verify admin status")
@@ -338,7 +409,7 @@ func (s *StudioAuthService) AdminResetUserPassword(ctx context.Context, req *pb.
 	}
 
 	// 3. Update the target user's password in the repository
-	err = s.repo.UpdatePassword(ctx, tenant, req.TargetUserId, string(newHashedPassword))
+	err = s.authRepo.UpdatePassword(ctx, tenant, req.TargetUserId, string(newHashedPassword))
 	if err != nil {
 		// Check if the error is "user not found"
 		if err.Error() == "user not found or password unchanged" { // Or use specific domain error
@@ -349,7 +420,7 @@ func (s *StudioAuthService) AdminResetUserPassword(ctx context.Context, req *pb.
 	}
 
 	// 4. Invalidate refresh tokens for the *target user*
-	err = s.repo.InvalidateAllUserRefreshTokens(ctx, tenant, req.TargetUserId)
+	err = s.authRepo.InvalidateAllUserRefreshTokens(ctx, tenant, req.TargetUserId)
 	if err != nil {
 		fmt.Printf("Warning: Failed to invalidate refresh tokens for target user %s after admin password reset, tenant %s: %v\n", req.TargetUserId, tenant, err)
 	}

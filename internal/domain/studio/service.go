@@ -196,7 +196,7 @@ func extractTenantFromContext(ctx context.Context) (string, error) {
 //	}
 //
 //	// Fetch email by username
-//	_, _, _, err = s.repo.GetUserByEmail(ctx, tenant, req.Username) // Assuming username can be email
+//	_, _, _, err = s.repo.GetUserByID(ctx, tenant, req.Username) // Assuming username can be email
 //	if err != nil {
 //		return nil, status.Errorf(codes.NotFound, "user not found: %v", err)
 //	}
@@ -221,7 +221,7 @@ func extractTenantFromContext(ctx context.Context) (string, error) {
 //	}
 //
 //	// Fetch current email by username
-//	_, _, _, err = s.repo.GetUserByEmail(ctx, tenant, req.Username)
+//	_, _, _, err = s.repo.GetUserByID(ctx, tenant, req.Username)
 //	if err != nil {
 //		return nil, status.Errorf(codes.NotFound, "user not found: %v", err)
 //	}
@@ -337,7 +337,7 @@ func extractTenantFromContext(ctx context.Context) (string, error) {
 //	return nil, status.Error(codes.Unimplemented, "method not implemented")
 //}
 //
-//func (s *StudioAuthService) GetUserByEmail(ctx context.Context, req *ups.GetUserByEmailRequest) (*ups.GetUserByEmailResponse, error) {
+//func (s *StudioAuthService) GetUserByID(ctx context.Context, req *ups.GetUserByIDRequest) (*ups.GetUserByIDResponse, error) {
 //	return nil, status.Error(codes.Unimplemented, "method not implemented")
 //}
 //

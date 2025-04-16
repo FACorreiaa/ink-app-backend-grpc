@@ -193,6 +193,9 @@ type StudioAuthRepository interface {
 	VerifyPassword(ctx context.Context, tenant, userID, password string) error
 	UpdatePassword(ctx context.Context, tenant, userID, newHashedPassword string) error
 	InvalidateAllUserRefreshTokens(ctx context.Context, tenant, userID string) error
+
+	// new methods
+
 }
 
 type StudioRepository interface {
@@ -218,12 +221,13 @@ type StudioRepository interface {
 }
 
 type UserRepository interface {
-	ChangePassword(ctx context.Context, tenant, email, oldPassword, newPassword string) error
-	ChangeEmail(ctx context.Context, tenant, email, password, newEmail string) error
-	GetUserByEmail(ctx context.Context, tenant, email string) (string, string, string, error)
 	GetUserByID(ctx context.Context, tenant, userID string) (*User, error)
 	GetAllUsers(ctx context.Context, tenant string) ([]*User, error)
 	UpdateUser(ctx context.Context, tenant string, user *User) error
 	InsertUser(ctx context.Context, tenant string, user *User) error
 	DeleteUser(ctx context.Context, tenant, userID string) error
+
+	ChangePassword(ctx context.Context, tenant, email, oldPassword, newPassword string) error
+	ChangeEmail(ctx context.Context, tenant, email, password, newEmail string) error
+	UpdateEmail(ctx context.Context, tenant, userID, newEmail string) error
 }

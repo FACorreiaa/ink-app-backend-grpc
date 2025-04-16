@@ -8,6 +8,7 @@ import (
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/config"
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain"
+	"github.com/jackc/pgx/v5/pgconn"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -39,14 +40,30 @@ func (r *UserRepository) GetAllUsers(ctx context.Context, tenant string) ([]*dom
 	panic("unimplemented")
 }
 
-// GetUserByEmail implements domain.UserRepository.
-func (r *UserRepository) GetUserByEmail(ctx context.Context, tenant string, email string) (string, string, string, error) {
-	panic("unimplemented")
-}
-
 // GetUserByID implements domain.UserRepository.
-func (r *UserRepository) GetUserByID(ctx context.Context, tenant string, userID string) (*domain.User, error) {
-	panic("unimplemented")
+func (r *UserRepository) GetUserByID(ctx context.Context, tenant, id string) (user *domain.User, err error) {
+	// Get tenant-specific database pool
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return nil, fmt.Errorf("invalid tenant: %w", err)
+	}
+
+	var username, email, role string
+	err = pool.QueryRow(ctx,
+		"SELECT id, username, email, role FROM users WHERE id = $1",
+		id).Scan(&id, &username, &email, &role)
+	if err != nil {
+		return nil, fmt.Errorf("user not found: %w", err)
+	}
+
+	user = &domain.User{
+		ID:       id,
+		Username: username,
+		Email:    email,
+		Role:     role,
+	}
+
+	return user, nil
 }
 
 // InsertUser implements domain.UserRepository.
@@ -89,6 +106,31 @@ func (r *UserRepository) ChangeEmail(ctx context.Context, tenant, email, passwor
 		return fmt.Errorf("failed to update email: %w", err)
 	}
 
+	return nil
+}
+
+func (r *UserRepository) UpdateEmail(ctx context.Context, tenant, userID, newEmail string) error {
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return fmt.Errorf("update email: invalid tenant: %w", err)
+	}
+
+	tag, err := pool.Exec(ctx,
+		`UPDATE users SET email = $1, updated_at = $2 WHERE id = $3`,
+		newEmail, time.Now(), userID)
+	if err != nil {
+		// ---> Check for unique constraint violation error specifically <---
+		// Example for pgx:
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" { // 23505 is unique_violation
+			return fmt.Errorf("new email already exists: %w", err) // Or a custom domain error
+		}
+		return fmt.Errorf("update email: db update failed: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		// This shouldn't happen if VerifyPassword passed, but good check
+		return errors.New("user not found during update")
+	}
 	return nil
 }
 
