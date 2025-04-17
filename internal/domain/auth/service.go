@@ -4,16 +4,18 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 
 	pb "github.com/FACorreiaa/ink-app-backend-protos/modules/studio/generated"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 	"golang.org/x/crypto/bcrypt"
 
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
 	"github.com/FACorreiaa/ink-app-backend-grpc/internal/domain"
+	"github.com/FACorreiaa/ink-app-backend-grpc/protocol/grpc/middleware/grpcrequest"
 )
 
 //"go.opentelemetry.io/otel"
@@ -30,32 +32,6 @@ type StudioAuthService struct {
 // NewStudioAuthService creates a new StudioAuthService
 func NewStudioAuthService(authRepo domain.StudioAuthRepository, userRepo domain.UserRepository) *StudioAuthService {
 	return &StudioAuthService{authRepo: authRepo, userRepo: userRepo}
-}
-
-// extractTenantFromContext extracts tenant from gRPC metadata
-func extractTenantFromContext(ctx context.Context) (string, error) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return "", status.Error(codes.Unauthenticated, "no metadata provided")
-	}
-
-	tenantValues := md.Get("X-Tenant")
-	if len(tenantValues) > 0 && tenantValues[0] != "" {
-		return tenantValues[0], nil
-	}
-
-	fmt.Printf("Metadata: %v\n", md)
-
-	hostValues := md.Get(":authority")
-	if len(hostValues) > 0 {
-		host := hostValues[0]
-		parts := strings.Split(host, ".")
-		if len(parts) > 0 && parts[0] != "" {
-			return parts[0], nil
-		}
-	}
-
-	return "", status.Error(codes.Unauthenticated, "tenant not specified")
 }
 
 func getAuthenticatedUserID(ctx context.Context) (string, error) {
@@ -83,7 +59,21 @@ func getAuthenticatedUserID(ctx context.Context) (string, error) {
 
 // Register registers a new user
 func (s *StudioAuthService) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
-	tenant, err := extractTenantFromContext(ctx)
+	traceContext, span := otel.Tracer("ink-me").Start(ctx, "Register")
+	defer span.End()
+	traceID := span.SpanContext().TraceID().String()
+	requestID, ok := ctx.Value(grpcrequest.RequestIDKey{}).(string)
+	if !ok {
+		return nil, status.Error(codes.Internal, "request id not found in context")
+	}
+
+	if req.Request == nil {
+		req.Request = &pb.BaseRequest{}
+	}
+
+	req.Request.RequestId = requestID
+
+	tenant, err := domain.ExtractTenantFromContext(traceContext)
 	if err != nil {
 		return nil, err
 	}
@@ -97,17 +87,28 @@ func (s *StudioAuthService) Register(ctx context.Context, req *pb.RegisterReques
 		return nil, status.Errorf(codes.Internal, "failed to register user: %v", err)
 	}
 
-	return &pb.RegisterResponse{Message: "User registered successfully"}, nil
+	span.SetAttributes(
+		semconv.ServiceNameKey.String("Workout"),
+		attribute.String("grpc.method", "GetExercises"),
+		attribute.String("request.id", req.GetRequest().RequestId),
+	)
+
+	return &pb.RegisterResponse{
+		Message: "User registered successfully",
+		Response: &pb.BaseResponse{
+			RequestId: req.Request.RequestId,
+			TraceId:   traceID,
+		}}, nil
 }
 
 // Login authenticates a user
 func (s *StudioAuthService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
-	tenant, err := extractTenantFromContext(ctx)
+	tenant, err := domain.ExtractTenantFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = validateLoginRequest(req); err != nil {
+	if err = domain.ValidateLoginRequest(req); err != nil {
 		// Return InvalidArgument status code
 		return nil, status.Errorf(codes.InvalidArgument, "invalid login request: %v", err)
 	}
@@ -126,7 +127,7 @@ func (s *StudioAuthService) Login(ctx context.Context, req *pb.LoginRequest) (*p
 
 // Logout invalidates a session
 func (s *StudioAuthService) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
-	tenant, err := extractTenantFromContext(ctx)
+	tenant, err := domain.ExtractTenantFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +149,7 @@ func (s *StudioAuthService) Logout(ctx context.Context, req *pb.LogoutRequest) (
 }
 
 func (s *StudioAuthService) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.TokenResponse, error) {
-	tenant, err := extractTenantFromContext(ctx)
+	tenant, err := domain.ExtractTenantFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +171,7 @@ func (s *StudioAuthService) RefreshToken(ctx context.Context, req *pb.RefreshTok
 
 // ChangePassword updates a user's password
 func (s *StudioAuthService) ChangePassword(ctx context.Context, req *pb.ChangePasswordRequest) (*pb.ChangePasswordResponse, error) {
-	tenant, err := extractTenantFromContext(ctx)
+	tenant, err := domain.ExtractTenantFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +201,7 @@ func (s *StudioAuthService) ChangePassword(ctx context.Context, req *pb.ChangePa
 
 // ChangeEmail updates a user's email
 // func (s *StudioAuthService) ChangeEmail(ctx context.Context, req *pb.ChangeEmailRequest) (*pb.ChangeEmailResponse, error) {
-// 	tenant, err := extractTenantFromContext(ctx)
+// 	tenant, err := domain.ExtractTenantFromContext(ctx)
 // 	if err != nil {
 // 		return nil, err
 // 	}
@@ -229,7 +230,7 @@ func (s *StudioAuthService) ChangePassword(ctx context.Context, req *pb.ChangePa
 // }
 
 func (s *StudioAuthService) ChangeEmail(ctx context.Context, req *pb.ChangeEmailRequest) (*pb.ChangeEmailResponse, error) {
-	tenant, err := extractTenantFromContext(ctx)
+	tenant, err := domain.ExtractTenantFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -292,7 +293,7 @@ func (s *StudioAuthService) ChangeEmail(ctx context.Context, req *pb.ChangeEmail
 // ValidateSession implements the ValidateSession RPC method
 func (s *StudioAuthService) ValidateSession(ctx context.Context, req *pb.ValidateSessionRequest) (*pb.ValidateSessionResponse, error) {
 	// Extract tenant from context
-	tenant, err := extractTenantFromContext(ctx)
+	tenant, err := domain.ExtractTenantFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -318,7 +319,7 @@ func (s *StudioAuthService) ValidateSession(ctx context.Context, req *pb.Validat
 }
 
 func (s *StudioAuthService) ChangeOwnPassword(ctx context.Context, req *pb.ChangeOwnPasswordRequest) (*pb.ChangeOwnPasswordResponse, error) {
-	tenant, err := extractTenantFromContext(ctx)
+	tenant, err := domain.ExtractTenantFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -369,7 +370,7 @@ func (s *StudioAuthService) ChangeOwnPassword(ctx context.Context, req *pb.Chang
 
 // AdminResetUserPassword handles requests for an admin resetting another user's password.
 func (s *StudioAuthService) AdminResetUserPassword(ctx context.Context, req *pb.AdminResetUserPasswordRequest) (*pb.AdminResetUserPasswordResponse, error) {
-	tenant, err := extractTenantFromContext(ctx)
+	tenant, err := domain.ExtractTenantFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}

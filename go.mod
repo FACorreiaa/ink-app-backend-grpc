@@ -3,7 +3,7 @@ module github.com/FACorreiaa/ink-app-backend-grpc
 go 1.24.1
 
 require (
-	github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250415152539-5fd1c3ebb5e7
+	github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250417140303-1469c7ee5c34
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0

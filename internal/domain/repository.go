@@ -230,4 +230,6 @@ type UserRepository interface {
 	ChangePassword(ctx context.Context, tenant, email, oldPassword, newPassword string) error
 	ChangeEmail(ctx context.Context, tenant, email, password, newEmail string) error
 	UpdateEmail(ctx context.Context, tenant, userID, newEmail string) error
+	GetUserByEmail(ctx context.Context, tenant, email string) (*User, error)
+	GetUserByUsername(ctx context.Context, tenant, username string) (*User, error)
 }

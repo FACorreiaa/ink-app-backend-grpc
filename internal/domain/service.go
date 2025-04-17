@@ -82,5 +82,5 @@ type CustomerService interface {
 	ChangePassword(ctx context.Context, req *upc.ChangePasswordRequest) (*upc.ChangePasswordResponse, error)
 	ChangeEmail(ctx context.Context, req *upc.ChangeEmailRequest) (*upc.ChangeEmailResponse, error)
 	UpdateUser(ctx context.Context, req *upc.UpdateUserRequest) (*upc.UpdateUserResponse, error)
-	RefreshToken(ctx context.Context, req *upc.RefreshTokenRequest) (*upc.TokenResponse, error)
+	//RefreshToken(ctx context.Context, req *upc.RefreshTokenRequest) (*upc.TokenResponse, error)
 }

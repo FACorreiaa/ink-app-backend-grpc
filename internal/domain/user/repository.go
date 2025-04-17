@@ -25,21 +25,6 @@ func NewUserRepository(dbManager *config.TenantDBManager, redisManager *config.T
 	}
 }
 
-// ChangePassword implements domain.UserRepository.
-func (r *UserRepository) ChangePassword(ctx context.Context, tenant string, email string, oldPassword string, newPassword string) error {
-	panic("unimplemented")
-}
-
-// DeleteUser implements domain.UserRepository.
-func (r *UserRepository) DeleteUser(ctx context.Context, tenant string, userID string) error {
-	panic("unimplemented")
-}
-
-// GetAllUsers implements domain.UserRepository.
-func (r *UserRepository) GetAllUsers(ctx context.Context, tenant string) ([]*domain.User, error) {
-	panic("unimplemented")
-}
-
 // GetUserByID implements domain.UserRepository.
 func (r *UserRepository) GetUserByID(ctx context.Context, tenant, id string) (user *domain.User, err error) {
 	// Get tenant-specific database pool
@@ -64,16 +49,6 @@ func (r *UserRepository) GetUserByID(ctx context.Context, tenant, id string) (us
 	}
 
 	return user, nil
-}
-
-// InsertUser implements domain.UserRepository.
-func (r *UserRepository) InsertUser(ctx context.Context, tenant string, user *domain.User) error {
-	panic("unimplemented")
-}
-
-// UpdateUser implements domain.UserRepository.
-func (r *UserRepository) UpdateUser(ctx context.Context, tenant string, user *domain.User) error {
-	panic("unimplemented")
 }
 
 func (r *UserRepository) ChangeEmail(ctx context.Context, tenant, email, password, newEmail string) error {
@@ -134,18 +109,119 @@ func (r *UserRepository) UpdateEmail(ctx context.Context, tenant, userID, newEma
 	return nil
 }
 
-// func (r *AuthRepository) GetAllUsers(ctx context.Context, tenant string) ([]*domain.User, error) {
-// 	return nil, nil
-// }
+func (r *UserRepository) GetAllUsers(ctx context.Context, tenant string) ([]*domain.User, error) {
+	// Get tenant-specific database pool
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return nil, fmt.Errorf("invalid tenant: %w", err)
+	}
 
-// func (r *AuthRepository) UpdateUser(ctx context.Context, tenant string, user *domain.User) error {
-// 	return nil
-// }
+	rows, err := pool.Query(ctx,
+		"SELECT id, username, email, role FROM users")
+	if err != nil {
+		return nil, fmt.Errorf("failed to query users: %w", err)
+	}
+	defer rows.Close()
 
-// func (r *AuthRepository) InsertUser(ctx context.Context, tenant string, user *domain.User) error {
-// 	return nil
-// }
+	var users []*domain.User
+	for rows.Next() {
+		var user domain.User
+		err = rows.Scan(&user.ID, &user.Username, &user.Email, &user.Role)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan user: %w", err)
+		}
+		users = append(users, &user)
+	}
 
-// func (r *AuthRepository) DeleteUser(ctx context.Context, tenant, userID string) error {
-// 	return nil
-// }
+	return users, nil
+}
+
+func (r *UserRepository) UpdateUser(ctx context.Context, tenant string, user *domain.User) error {
+	return nil
+}
+
+func (r *UserRepository) InsertUser(ctx context.Context, tenant string, user *domain.User) error {
+	if tenant == "" {
+		return errors.New("tenant subdomain is required")
+	}
+
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return fmt.Errorf("invalid tenant: %w", err)
+	}
+
+	_, err = pool.Exec(ctx,
+		"INSERT INTO users (id, username, email, role, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)",
+		user.ID, user.Username, user.Email, user.Role, time.Now(), time.Now())
+	if err != nil {
+		return fmt.Errorf("failed to insert user: %w", err)
+	}
+
+	return nil
+}
+
+func (r *UserRepository) DeleteUser(ctx context.Context, tenant, userID string) error {
+	if tenant == "" {
+		return errors.New("tenant subdomain is required")
+	}
+
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return fmt.Errorf("invalid tenant: %w", err)
+	}
+
+	_, err = pool.Exec(ctx,
+		"DELETE FROM users WHERE id = $1",
+		userID)
+	if err != nil {
+		return fmt.Errorf("failed to delete user: %w", err)
+	}
+
+	return nil
+}
+
+func (r *UserRepository) GetUserByEmail(ctx context.Context, tenant, email string) (*domain.User, error) {
+	if tenant == "" {
+		return nil, errors.New("tenant subdomain is required")
+	}
+
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return nil, fmt.Errorf("invalid tenant: %w", err)
+	}
+
+	var user domain.User
+	err = pool.QueryRow(ctx,
+		"SELECT id, username, email, role FROM users WHERE email = $1",
+		email).Scan(&user.ID, &user.Username, &user.Email, &user.Role)
+	if err != nil {
+		return nil, fmt.Errorf("user not found: %w", err)
+	}
+
+	return &user, nil
+}
+
+func (r *UserRepository) ChangePassword(ctx context.Context, tenant, email, oldPassword, newPassword string) error {
+	return nil
+}
+
+func (r *UserRepository) GetUserByUsername(ctx context.Context, tenant, username string) (*domain.User, error) {
+	if tenant == "" {
+		return nil, errors.New("tenant subdomain is required")
+	}
+
+	pool, err := r.DBManager.GetTenantDB(tenant)
+	if err != nil {
+		return nil, fmt.Errorf("invalid tenant: %w", err)
+	}
+
+	var user domain.User
+	err = pool.QueryRow(ctx,
+		"SELECT id, username, email, role FROM users WHERE username = $1",
+		username).Scan(&user.ID, &user.Username, &user.Email, &user.Role)
+	if err != nil {
+		return nil, fmt.Errorf("user not found: %w", err)
+	}
+
+	return &user, nil
+}
