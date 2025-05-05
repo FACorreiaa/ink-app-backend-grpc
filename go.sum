@@ -1,9 +1,5 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250415152539-5fd1c3ebb5e7 h1:LiQ5PcikrJeg2ixSGOTCR8t4/mROkBSxvtErf4D8jJ4=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250415152539-5fd1c3ebb5e7/go.mod h1:ubwjut9DaIqjTaoGkKDplT0XPIMQ7e2sh8MTeh6hw8U=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250417133939-81a44ac1af58 h1:7LAKU20Wr8BIBg9Ap6HskOJEvrrBvtqomNsQ09daMlU=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250417133939-81a44ac1af58/go.mod h1:dKP86b2Sd07xKypVTmm4w67T57CHS4mTBBcfFZa+Xhk=
 github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250417140303-1469c7ee5c34 h1:l7RtjcIHOk65AZ/ve2+vUfZzvRi1F3B+m0G7JLC8/H8=
 github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250417140303-1469c7ee5c34/go.mod h1:dKP86b2Sd07xKypVTmm4w67T57CHS4mTBBcfFZa+Xhk=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
@@ -110,8 +106,8 @@ github.com/prometheus/common v0.63.0 h1:YR/EIY1o3mEFP/kZCD7iDMnLPlGyuU2Gb3HIcXnA
 github.com/prometheus/common v0.63.0/go.mod h1:VVFF/fBIoToEnWRVkYoXEkq3R3paCoxG9PXP74SnV18=
 github.com/prometheus/procfs v0.16.0 h1:xh6oHhKwnOJKMYiYBDWmkHqQPyiY40sny36Cmx2bbsM=
 github.com/prometheus/procfs v0.16.0/go.mod h1:8veyXUu3nGP7oaCxhX6yeaM5u4stL2FeMXnCqhDthZg=
-github.com/redis/go-redis/v9 v9.7.3 h1:YpPyAayJV+XErNsatSElgRZZVCwXX9QzkKYNvO7x0wM=
-github.com/redis/go-redis/v9 v9.7.3/go.mod h1:bGUrSggJ9X9GUmZpZNEOQKaANxSGgOEBRltRTZHSvrA=
+github.com/redis/go-redis/v9 v9.8.0 h1:q3nRvjrlge/6UD7eTu/DSg2uYiU2mCL0G/uzBWqhicI=
+github.com/redis/go-redis/v9 v9.8.0/go.mod h1:huWgSWd8mW6+m0VPhJjSSQ+d6Nh1VICQ6Q5lHuCH/Iw=
 github.com/rogpeppe/go-internal v1.13.1 h1:KvO1DLK/DRN07sQ1LQKScxyZJuNnedQ5/wKSR38lUII=
 github.com/rogpeppe/go-internal v1.13.1/go.mod h1:uMEvuHeurkdAXX61udpOXGD/AzZDWNMNyH2VO9fmH0o=
 github.com/sagikazarmark/locafero v0.9.0 h1:GbgQGNtTrEmddYDSAH9QLRyfAHY12md+8YFTqyMTC9k=
