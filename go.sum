@@ -1,9 +1,5 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250415152539-5fd1c3ebb5e7 h1:LiQ5PcikrJeg2ixSGOTCR8t4/mROkBSxvtErf4D8jJ4=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250415152539-5fd1c3ebb5e7/go.mod h1:ubwjut9DaIqjTaoGkKDplT0XPIMQ7e2sh8MTeh6hw8U=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250417133939-81a44ac1af58 h1:7LAKU20Wr8BIBg9Ap6HskOJEvrrBvtqomNsQ09daMlU=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250417133939-81a44ac1af58/go.mod h1:dKP86b2Sd07xKypVTmm4w67T57CHS4mTBBcfFZa+Xhk=
 github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250417140303-1469c7ee5c34 h1:l7RtjcIHOk65AZ/ve2+vUfZzvRi1F3B+m0G7JLC8/H8=
 github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250417140303-1469c7ee5c34/go.mod h1:dKP86b2Sd07xKypVTmm4w67T57CHS4mTBBcfFZa+Xhk=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
@@ -64,8 +60,8 @@ github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 h1:UH//fgunKIs4JdUbpDl1VZCDa
 github.com/grpc-ecosystem/go-grpc-middleware v1.4.0/go.mod h1:g5qyo/la0ALbONm6Vbp88Yd8NsDy6rZz+RcrMPxvld8=
 github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.0.1 h1:qnpSQwGEnkcRpTqNOIR6bJbR0gAorgP9CSALpRcKoAA=
 github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.0.1/go.mod h1:lXGCsh6c22WGtjr+qGHj1otzZpV/1kwTMAqkwZsnWRU=
-github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.1 h1:KcFzXwzM/kGhIRHvc8jdixfIJjVzuUJdnv+5xsPutog=
-github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.1/go.mod h1:qOchhhIlmRcqk/O9uCo/puJlyo07YINaIqdZfZG3Jkc=
+github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.2 h1:sGm2vDRFUrQJO/Veii4h4zG2vvqG6uWNkBHSTqXOZk0=
+github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.2/go.mod h1:wd1YpapPLivG6nQgbf7ZkG1hhSOXDhhn4MLTknx2aAc=
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3 h1:5ZPtiqj0JL5oKWmcsq4VMaAW5ukBEgSGXEN89zeH1Jo=
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3/go.mod h1:ndYquD05frm2vACXE1nsccT4oJzjhw2arTS2cpUD1PI=
 github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=
