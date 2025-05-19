@@ -1,9 +1,5 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250415152539-5fd1c3ebb5e7 h1:LiQ5PcikrJeg2ixSGOTCR8t4/mROkBSxvtErf4D8jJ4=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250415152539-5fd1c3ebb5e7/go.mod h1:ubwjut9DaIqjTaoGkKDplT0XPIMQ7e2sh8MTeh6hw8U=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250417133939-81a44ac1af58 h1:7LAKU20Wr8BIBg9Ap6HskOJEvrrBvtqomNsQ09daMlU=
-github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250417133939-81a44ac1af58/go.mod h1:dKP86b2Sd07xKypVTmm4w67T57CHS4mTBBcfFZa+Xhk=
 github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250417140303-1469c7ee5c34 h1:l7RtjcIHOk65AZ/ve2+vUfZzvRi1F3B+m0G7JLC8/H8=
 github.com/FACorreiaa/ink-app-backend-protos v0.0.0-20250417140303-1469c7ee5c34/go.mod h1:dKP86b2Sd07xKypVTmm4w67T57CHS4mTBBcfFZa+Xhk=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
@@ -242,8 +238,8 @@ google.golang.org/grpc v1.23.0/go.mod h1:Y5yQAOtifL1yxbo5wqy6BxZv8vAUGQwXBOALyac
 google.golang.org/grpc v1.25.1/go.mod h1:c3i+UQWmh7LiEpx4sFZnkU36qjEYZ0imhYfXVyQciAY=
 google.golang.org/grpc v1.27.0/go.mod h1:qbnxyOmOxrQa7FizSgH+ReBfzJrCY1pSN7KXBS8abTk=
 google.golang.org/grpc v1.29.1/go.mod h1:itym6AZVZYACWQqET3MqgPpjcuV5QH3BxFS3IjizoKk=
-google.golang.org/grpc v1.71.1 h1:ffsFWr7ygTUscGPI0KKK6TLrGz0476KUvvsbqWK0rPI=
-google.golang.org/grpc v1.71.1/go.mod h1:H0GRtasmQOh9LkFoCPDu3ZrwUtD1YGE+b2vYBYd/8Ec=
+google.golang.org/grpc v1.72.1 h1:HR03wO6eyZ7lknl75XlxABNVLLFc2PAb6mHlYh756mA=
+google.golang.org/grpc v1.72.1/go.mod h1:wH5Aktxcg25y1I3w7H69nHfXdOG3UiadoBtjh3izSDM=
 google.golang.org/protobuf v1.36.6 h1:z1NpPI8ku2WgiWnf+t9wTPsn6eP1L7ksHUlkfLvd9xY=
 google.golang.org/protobuf v1.36.6/go.mod h1:jduwjTPXsFjZGTmRluh+L6NjiWu7pchiJ2/5YcXBHnY=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
